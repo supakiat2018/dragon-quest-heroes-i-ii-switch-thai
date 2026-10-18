@@ -20,7 +20,7 @@ WORKSPACE_DIR = os.path.join(SWITCH_DIR, "workspace")
 TEX_DIR = os.path.join(WORKSPACE_DIR, "tex_55")
 OUT_G1T_DIR = os.path.join(WORKSPACE_DIR, "out_g1t")
 
-FONT_TTF = os.path.join(SWITCH_DIR, "fonts", "Pridi-Bold.ttf")
+FONT_TTF = os.path.join(SWITCH_DIR, "fonts", "LeelawUI.ttf")
 G1T_TOOL = os.path.join(SWITCH_DIR, "tools", "g1t_tool.py")
 
 def encode_cell_dxt5(cell_img):
@@ -83,10 +83,12 @@ TITLE_ID = "0100CD3000BDC000"
 MOD_DIR = os.path.join(BASE_DIR, "mod", "atmosphere", "contents", TITLE_ID, "romfs", "dqh2")
 MOD_BIN = os.path.join(MOD_DIR, "LINKDATA.BIN")
 MOD_IDX = os.path.join(MOD_DIR, "LINKDATA.IDX")
+YUZU_DIR = os.path.expanduser(r"~\AppData\Roaming\yuzu\load\0100CD3000BDC000\MODTHAI\romfs\dqh2")
+YUZU_BIN = os.path.join(YUZU_DIR, "LINKDATA.BIN")
 
 CELL_SIZE = 36
-FONT_SIZE = 28
-TARGET_BASELINE = 30
+FONT_SIZE = 27
+TARGET_BASELINE = 29
 
 WIDTH_BLOCKS = 4096 // 4  # 1024
 BLOCK_BYTES = 16
@@ -313,6 +315,12 @@ def inject_mod(g1t_file):
         f.write(full_payload)
         
     print(f"[+] Successfully injected Entry 55 into {MOD_BIN} at offset {idx_off}!")
+
+    if os.path.exists(YUZU_BIN):
+        with open(YUZU_BIN, "r+b") as fy:
+            fy.seek(idx_off)
+            fy.write(full_payload)
+        print(f"[+] Successfully updated Yuzu LINKDATA.BIN at {YUZU_BIN}!")
 
 def main():
     print("=================================================================")
