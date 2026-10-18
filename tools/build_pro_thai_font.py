@@ -27,6 +27,9 @@ OUT_G1T_DIR = os.path.join(SWITCH_DIR, "workspace", "out_g1t")
 
 f32 = ImageFont.truetype(FONT_TTF, 32)
 f_mark = ImageFont.truetype(FONT_TTF, 28)
+f_vowel = ImageFont.truetype(FONT_TTF, 26)
+f_tone = ImageFont.truetype(FONT_TTF, 24)
+f_mark_stand = ImageFont.truetype(FONT_TTF, 28)
 
 TONE_MARKS = ['่', '้', '๊', '๋', '์', '็']
 UPPER_MARKS = ['ิ', 'ี', 'ึ', 'ื', 'ั', 'ํ']
@@ -46,7 +49,7 @@ def render_standalone_glyph(ch):
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
         cx = (36 - crop.width) // 2
-        cy = 5
+        cy = 2 # วรรณยุกต์เดี่ยวชิดเพดานบนสุด!
         cell.paste(crop, (cx, cy), crop)
         return cell
 
@@ -57,7 +60,7 @@ def render_standalone_glyph(ch):
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
         cx = (36 - crop.width) // 2
-        cy = 9
+        cy = 7 # สระบนยกสูงขึ้นชัดเจน!
         cell.paste(crop, (cx, cy), crop)
         return cell
 
@@ -96,41 +99,43 @@ def render_standalone_glyph(ch):
         return cell
 
 def render_phrase_cell(ch):
-    """เรนเดอร์ตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Uniform Monospace Kerning (แบบที่ 3: ตัวผอมลง 4px สัดส่วนเพรียวสวย)"""
+    """เรนเดอร์ตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' Option A (กว้าง 30px ชิดสวย + สระและวรรณยุกต์ยกสูงพิเศษ)"""
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
     
     if ch == 'ชื่':
+        target_w = 30
         t_b = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
         ImageDraw.Draw(t_b).text((40, 60), 'ช', font=f32, fill=(255, 255, 255, 255), anchor='ms')
         c_b = np.argwhere(np.array(t_b)[:, :, 3] > 20)
         crop_b = t_b.crop((c_b[:, 1].min(), c_b[:, 0].min(), c_b[:, 1].max() + 1, c_b[:, 0].max() + 1))
         
         t_v = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
-        ImageDraw.Draw(t_v).text((40, 60), 'ื', font=f32, fill=(255, 255, 255, 255), anchor='ms')
+        ImageDraw.Draw(t_v).text((40, 60), 'ื', font=f_vowel, fill=(255, 255, 255, 255), anchor='ms')
         c_v = np.argwhere(np.array(t_v)[:, :, 3] > 20)
         crop_v = t_v.crop((c_v[:, 1].min(), c_v[:, 0].min(), c_v[:, 1].max() + 1, c_v[:, 0].max() + 1))
         
         t_t = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
-        ImageDraw.Draw(t_t).text((40, 60), '่', font=f_mark, fill=(255, 255, 255, 255), anchor='ms')
+        ImageDraw.Draw(t_t).text((40, 60), '่', font=f_tone, fill=(255, 255, 255, 255), anchor='ms')
         c_t = np.argwhere(np.array(t_t)[:, :, 3] > 20)
         crop_t = t_t.crop((c_t[:, 1].min(), c_t[:, 0].min(), c_t[:, 1].max() + 1, c_t[:, 0].max() + 1))
         
         can = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
-        y_b = 33 - crop_b.height
+        y_b = 33 - crop_b.height # 14
         x_b = 40 - crop_b.width // 2
         can.paste(crop_b, (x_b, y_b), crop_b)
         
-        y_v = y_b - crop_v.height + 2
+        # สระ ื ยกสูงพิเศษ: y_v = 6 (ลอยเหนือพยัญชนะ)
+        y_v = 6
         x_v = x_b + (crop_b.width - crop_v.width) // 2
         can.paste(crop_v, (x_v, y_v), crop_v)
         
-        y_t = y_v - crop_t.height - 1
+        # วรรณยุกต์ ่ ยกสูงสุดเพดาน: y_t = 0 (ลอยเหนือสระ 2px)
+        y_t = 0
         x_t = x_b + crop_b.width - crop_t.width - 2
         can.paste(crop_t, (x_t, y_t), crop_t)
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        target_w = 27
         scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
         cx = (36 - target_w) // 2
         cy = coords[:, 0].min()
@@ -138,6 +143,7 @@ def render_phrase_cell(ch):
         return cell
 
     elif ch in ['ตั', 'ลั']:
+        target_w = 30
         base = ch[0]
         t_b = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
         ImageDraw.Draw(t_b).text((40, 60), base, font=f32, fill=(255, 255, 255, 255), anchor='ms')
@@ -145,22 +151,22 @@ def render_phrase_cell(ch):
         crop_b = t_b.crop((c_b[:, 1].min(), c_b[:, 0].min(), c_b[:, 1].max() + 1, c_b[:, 0].max() + 1))
         
         t_v = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
-        ImageDraw.Draw(t_v).text((40, 60), 'ั', font=f32, fill=(255, 255, 255, 255), anchor='ms')
+        ImageDraw.Draw(t_v).text((40, 60), 'ั', font=f_mark_stand, fill=(255, 255, 255, 255), anchor='ms')
         c_v = np.argwhere(np.array(t_v)[:, :, 3] > 20)
         crop_v = t_v.crop((c_v[:, 1].min(), c_v[:, 0].min(), c_v[:, 1].max() + 1, c_v[:, 0].max() + 1))
         
         can = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
-        y_b = 33 - crop_b.height
+        y_b = 33 - crop_b.height # 14
         x_b = 40 - crop_b.width // 2
         can.paste(crop_b, (x_b, y_b), crop_b)
         
-        y_v = y_b - crop_v.height + 2
+        # ไม้หันอากาศ ั ยกสูงพิเศษ: y_v = 4 (ลอย 2px เหนือลำตัว)
+        y_v = 4
         x_v = x_b + (crop_b.width - crop_v.width) // 2
         can.paste(crop_v, (x_v, y_v), crop_v)
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        target_w = 27
         scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
         cx = (36 - target_w) // 2
         cy = coords[:, 0].min()
@@ -173,14 +179,12 @@ def render_phrase_cell(ch):
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
         
-        if ch in ['ะ']:
-            target_w = 27
+        if ch in ['ค', 'ห', 'ก']:
+            target_w = 31
         elif ch in ['ว', 'ร']:
-            target_w = 25
-        elif ch in ['ค', 'ห', 'ก']:
             target_w = 28
-        else: # อ, ล
-            target_w = 27
+        else: # อ, ล, ะ
+            target_w = 30
             
         scaled = crop.resize((target_w, crop.height), Image.Resampling.LANCZOS)
         cx = (36 - target_w) // 2
