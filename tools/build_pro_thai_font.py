@@ -96,7 +96,7 @@ def render_standalone_glyph(ch):
         return cell
 
 def render_phrase_cell(ch):
-    """เรนเดอร์ตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Uniform Monospace Kerning ช่องไฟเท่ากันทุกตัว"""
+    """เรนเดอร์ตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Uniform Monospace Kerning (แบบที่ 3: ตัวผอมลง 4px สัดส่วนเพรียวสวย)"""
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
     
     if ch == 'ชื่':
@@ -130,7 +130,7 @@ def render_phrase_cell(ch):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        target_w = 31
+        target_w = 27
         scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
         cx = (36 - target_w) // 2
         cy = coords[:, 0].min()
@@ -160,7 +160,7 @@ def render_phrase_cell(ch):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        target_w = 31
+        target_w = 27
         scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
         cx = (36 - target_w) // 2
         cy = coords[:, 0].min()
@@ -174,19 +174,16 @@ def render_phrase_cell(ch):
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
         
         if ch in ['ะ']:
-            target_w = 31
-            cx = 2
+            target_w = 27
         elif ch in ['ว', 'ร']:
-            target_w = 29
-            cx = 3
+            target_w = 25
         elif ch in ['ค', 'ห', 'ก']:
-            target_w = 32
-            cx = (36 - target_w) // 2
+            target_w = 28
         else: # อ, ล
-            target_w = 31
-            cx = (36 - target_w) // 2
+            target_w = 27
             
         scaled = crop.resize((target_w, crop.height), Image.Resampling.LANCZOS)
+        cx = (36 - target_w) // 2
         cy = 33 - crop.height
         cell.paste(scaled, (cx, cy), scaled)
         return cell
