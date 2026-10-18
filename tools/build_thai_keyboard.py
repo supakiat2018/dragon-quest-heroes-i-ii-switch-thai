@@ -206,42 +206,47 @@ KEYBOARD_MAPPING = [
     ('ぽ', (2,  43), '9'),
 ]
 
-def render_thai_char(font, ch):
-    """เรนเดอร์ตัวอักษรไทย 1 ตัวให้ขยายเต็มช่อง 36x36 เท่าขนาดตัวอักษรญี่ปุ่น"""
-    temp = Image.new('RGBA', (160, 160), (0, 0, 0, 0))
-    dt = ImageDraw.Draw(temp)
-    dt.text((80, 80), ch, font=font, fill=(255, 255, 255, 255), anchor='mm')
-    
-    arr = np.array(temp)[:, :, 3]
-    coords = np.argwhere(arr > 15)
-    if len(coords) == 0:
-        return Image.new('RGBA', (CELL_SIZE, CELL_SIZE), (0, 0, 0, 0))
-        
-    min_y, min_x = coords.min(axis=0)
-    max_y, max_x = coords.max(axis=0)
-    cropped = temp.crop((min_x, min_y, max_x + 1, max_y + 1))
-    
-    tall_chars = ['ป', 'ฝ', 'ฟ', 'เ', 'แ', 'โ', 'ใ', 'ไ', 'ฎ', 'ฏ', 'ฐ', 'ฤ', 'ฦ']
-    marks = ['ิ', 'ี', 'ึ', 'ื', '่', '้', '๊', '๋', '์', '็', 'ั', 'ํ', 'ุ', 'ู', 'ฺ']
-    
-    if ch in tall_chars:
-        target_h, target_w = 33, 33
-    elif ch in marks:
-        target_h, target_w = 26, 28
-    else:
-        # พยัญชนะมาตรฐาน ตัวเลข และสัญลักษณ์
-        target_h, target_w = 30, 33
-        
-    scale = min(target_h / cropped.height, target_w / cropped.width)
-    new_w = max(1, int(round(cropped.width * scale)))
-    new_h = max(1, int(round(cropped.height * scale)))
-    
-    scaled = cropped.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    
+def render_thai_char(f_std, f_tall, f_mark, ch):
+    """เรนเดอร์ตัวอักษรไทยให้มีขนาดสมดุล เท่ากันทุกตัว และไม่ล้นขอบ"""
     cell = Image.new('RGBA', (CELL_SIZE, CELL_SIZE), (0, 0, 0, 0))
-    cx = (CELL_SIZE - new_w) // 2
-    cy = (CELL_SIZE - new_h) // 2
-    cell.paste(scaled, (cx, cy), scaled)
+    d = ImageDraw.Draw(cell)
+    
+    descenders = ['ฎ', 'ฏ', 'ฐ', 'ฤ', 'ฦ', 'ญ']
+    tall_vowels = ['เ', 'แ', 'โ', 'ใ', 'ไ', 'ำ']
+    tails = ['ป', 'ฝ', 'ฟ']
+    marks = ['ิ', 'ี', 'ึ', 'ื', '่', '้', '๊', '๋', '์', '็', 'ั', 'ํ', 'ุ', 'ู', 'ฺ']
+    digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    
+    if ch in marks:
+        temp = Image.new('RGBA', (60, 60), (0, 0, 0, 0))
+        dt = ImageDraw.Draw(temp)
+        dt.text((30, 30), ch, font=f_mark, fill=(255, 255, 255, 255), anchor='mm')
+        arr = np.array(temp)[:, :, 3]
+        coords = np.argwhere(arr > 20)
+        if len(coords) > 0:
+            min_y, min_x = coords.min(axis=0)
+            max_y, max_x = coords.max(axis=0)
+            crop_mark = temp.crop((min_x, min_y, max_x + 1, max_y + 1))
+            cx = (CELL_SIZE - crop_mark.width) // 2
+            cy = (CELL_SIZE - crop_mark.height) // 2
+            cell.paste(crop_mark, (cx, cy), crop_mark)
+        else:
+            d.text((18, 18), ch, font=f_mark, fill=(255, 255, 255, 255), anchor='mm')
+    elif ch in tall_vowels:
+        d.text((18, 32), ch, font=f_tall, fill=(255, 255, 255, 255), anchor='ms')
+    elif ch in descenders:
+        d.text((18, 26), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+    elif ch in tails:
+        d.text((18, 30), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+    elif ch in digits:
+        d.text((18, 29), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+    elif ch in ['-', '~', '.']:
+        base = 22 if ch in ['-', '~'] else 30
+        d.text((18, base), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+    else:
+        # พยัญชนะมาตรฐาน ความสูง 17-18px เท่ากัน 100%
+        d.text((18, 28), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+        
     return cell
 
 def patch_dds():
@@ -249,11 +254,13 @@ def patch_dds():
     with open(ORIG_DDS, "rb") as f:
         dds_bytes = bytearray(f.read())
         
-    font = ImageFont.truetype(FONT_TTF, 80)
-    print(f"[*] Encoding and patching {len(KEYBOARD_MAPPING)} Thai glyph cells into DDS (Japanese-matching size)...")
+    f_std = ImageFont.truetype(FONT_TTF, 34)
+    f_tall = ImageFont.truetype(FONT_TTF, 30)
+    f_mark = ImageFont.truetype(FONT_TTF, 38)
+    print(f"[*] Encoding and patching {len(KEYBOARD_MAPPING)} Thai glyph cells into DDS (uniform balanced size)...")
     
     for key_char, (row, col), thai_char in KEYBOARD_MAPPING:
-        cell_img = render_thai_char(font, thai_char)
+        cell_img = render_thai_char(f_std, f_tall, f_mark, thai_char)
         rows_dxt = encode_cell_dxt5(cell_img)
         
         by0 = row * 9
