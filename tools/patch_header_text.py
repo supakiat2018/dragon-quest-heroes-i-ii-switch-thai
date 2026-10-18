@@ -55,7 +55,7 @@ def patch_file(bin_path, replacement_bytes):
     return True
 
 def main():
-    thai_text = "ตั้งชื่อตัวเอก"
+    thai_text = "ตั้งชื่อตัวหลัก"
     kana_text = encode_thai_to_kana(thai_text)
     encoded_bytes = kana_text.encode("utf-8")
     
