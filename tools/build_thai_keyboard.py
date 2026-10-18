@@ -92,7 +92,7 @@ WIDTH_BLOCKS = 4096 // 4  # 1024
 BLOCK_BYTES = 16
 
 ENTRY_55_ID = 55
-ENTRY_55_OFF = 251691008
+ENTRY_55_OFF = 4805120
 ENTRY_55_ZSZ = 1106944
 
 # ผังการจับคู่ 83 ปุ่มคีย์บอร์ดในเกม
@@ -286,27 +286,33 @@ def import_g1t():
     return out_g1t_file
 
 def inject_mod(g1t_file):
+    print(f"[*] Reading Entry {ENTRY_55_ID} offset & size from {MOD_IDX}...")
+    with open(MOD_IDX, "rb") as f_idx:
+        f_idx.seek(ENTRY_55_ID * 32)
+        idx_off, idx_sz, idx_zsz, idx_comp = struct.unpack("<QQQQ", f_idx.read(32))
+    print(f"[*] Entry {ENTRY_55_ID} in IDX: Offset={idx_off:,}, Original Size={idx_sz:,}, Slot Limit={idx_zsz:,}")
+    
     print(f"[*] Compressing Entry 55 with Koei Tecmo Chunk Compression (Zlib lvl 9)...")
     with open(g1t_file, "rb") as f:
         g1t_raw = f.read()
         
     packed = pack_entry_chunks(g1t_raw)
-    print(f"[+] Packed Entry 55 size: {len(packed):,} bytes (Slot limit: {ENTRY_55_ZSZ:,} bytes)")
-    assert len(packed) <= ENTRY_55_ZSZ, f"Error: Packed size exceeds slot limit ({len(packed)} > {ENTRY_55_ZSZ})"
+    print(f"[+] Packed Entry 55 size: {len(packed):,} bytes (Slot limit: {idx_zsz:,} bytes)")
+    assert len(packed) <= idx_zsz, f"Error: Packed size exceeds slot limit ({len(packed)} > {idx_zsz})"
     
     print(f"[*] Injecting packed Entry 55 into modded LINKDATA.BIN...")
     assert os.path.exists(MOD_BIN), f"MOD LINKDATA.BIN not found at {MOD_BIN}!"
     
     # เขียนทับลงใน Offset เดิมของ Entry 55
-    pad_bytes = b'\x00' * (ENTRY_55_ZSZ - len(packed))
+    pad_bytes = b'\x00' * (idx_zsz - len(packed))
     full_payload = packed + pad_bytes
-    assert len(full_payload) == ENTRY_55_ZSZ
+    assert len(full_payload) == idx_zsz
     
     with open(MOD_BIN, "r+b") as f:
-        f.seek(ENTRY_55_OFF)
+        f.seek(idx_off)
         f.write(full_payload)
         
-    print(f"[+] Successfully injected Entry 55 into {MOD_BIN} at offset {ENTRY_55_OFF}!")
+    print(f"[+] Successfully injected Entry 55 into {MOD_BIN} at offset {idx_off}!")
 
 def main():
     print("=================================================================")
