@@ -1,10 +1,10 @@
 """
 build_pro_thai_font.py
-สคริปต์ปรับปรุงฟอนต์ภาษาไทยและแป้นพิมพ์ระดับมืออาชีพสำหรับ DQH2 บน Switch:
-1. ล็อกความสูงลำตัวพยัญชนะ (Consonant Body Height) ให้เท่ากันเป๊ะ 100% ทุกตัว (ก สูงเท่า ช, ต, ล, ห, อ)
-2. วรรณยุกต์และสระบนในพยางค์ซ้อน (ชื่, ตั, ลั) ยกสูงอย่างประณีต ไม่กดทับลำตัวพยัญชนะ และไม่ชนขอบบน
-3. วรรณยุกต์เดี่ยวบนแป้นพิมพ์ (่ ้ ๊ ๋ ์ ็) ลอยสูงเด่นชัดชิดขอบบนของปุ่ม (Y = 5px)
-4. ระบบจัดกลุ่มคำธรรมชาติ (Word-Group Optical Kerning) ทำให้ตัวหนังสือเรียงชิดติดกันเป็นคำสวยงาม
+สคริปต์สร้าง Pro Thai Font (Ultra-Tight Edition):
+1. ขยายความกว้างตัวอักษร 1.32x ให้ตัวหนาอวบอิ่มเต็มเซลล์ 30px เทียบเท่าตัวอักษรญี่ปุ่นเดิม
+2. เพิ่มแรงดึงกลุ่มคำ (Word-Group Optical Kerning) ดึงตัวอักษรในคำเดียวกันเข้าหากันสนิท
+3. ล็อกความสูงลำตัวพยัญชนะ (Consonant Body Height) ให้เท่ากัน 100% ทุกตัว
+4. ฉีดเข้า Atmosphere Mod และ Yuzu ทันที
 """
 
 import os
@@ -34,12 +34,12 @@ LOWER_MARKS = ['ุ', 'ู', 'ฺ']
 DESCENDERS = ['ฎ', 'ฏ', 'ฐ', 'ฤ', 'ฦ', 'ญ']
 TALL_CHARS = ['ป', 'ฝ', 'ฟ']
 
+WIDTH_SCALE = 1.32 # ขยายความกว้างให้อิ่มเต็มช่อง
+
 def render_standalone_glyph(ch):
-    """เรนเดอร์ตัวอักษรเดี่ยวสำหรับแป้นพิมพ์ โดยจัดวางตามประเภทอักขระ"""
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
     
     if ch in TONE_MARKS:
-        # วรรณยุกต์เดี่ยว: ยกสูงชิดขอบบน (Y = 4-5px)
         f = ImageFont.truetype(FONT_TTF, 34)
         t = Image.new('RGBA', (60, 60), (0, 0, 0, 0))
         ImageDraw.Draw(t).text((30, 30), ch, font=f, fill=(255, 255, 255, 255), anchor='mm')
@@ -51,7 +51,6 @@ def render_standalone_glyph(ch):
         return cell
 
     elif ch in UPPER_MARKS:
-        # สระบนเดี่ยว: วางในโซนบน
         f = ImageFont.truetype(FONT_TTF, 32)
         t = Image.new('RGBA', (60, 60), (0, 0, 0, 0))
         ImageDraw.Draw(t).text((30, 30), ch, font=f, fill=(255, 255, 255, 255), anchor='mm')
@@ -63,7 +62,6 @@ def render_standalone_glyph(ch):
         return cell
 
     elif ch in LOWER_MARKS:
-        # สระล่าง
         f = ImageFont.truetype(FONT_TTF, 30)
         t = Image.new('RGBA', (60, 60), (0, 0, 0, 0))
         ImageDraw.Draw(t).text((30, 30), ch, font=f, fill=(255, 255, 255, 255), anchor='mm')
@@ -75,7 +73,6 @@ def render_standalone_glyph(ch):
         return cell
 
     else:
-        # พยัญชนะเดี่ยว: ล็อกขนาดให้ความสูงลำตัวเท่ากันเป๊ะ 19px
         t = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
         ImageDraw.Draw(t).text((40, 60), ch, font=f32, fill=(255, 255, 255, 255), anchor='ms')
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
@@ -83,26 +80,23 @@ def render_standalone_glyph(ch):
             return cell
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
         
-        # ขยายความกว้าง 1.18x เพื่อลดขอบว่างด้านข้าง
-        nw = int(round(crop.width * 1.18))
+        nw = int(round(crop.width * WIDTH_SCALE))
         nh = crop.height
         scaled = crop.resize((nw, nh), Image.Resampling.LANCZOS)
         
         if ch in ['ะ', 'า', 'ำ']:
-            cx = 2 # ชิดซ้าย
+            cx = 1
         elif ch in ['เ', 'แ', 'โ', 'ใ', 'ไ']:
-            cx = 36 - nw - 2 # ชิดขวา
+            cx = 36 - nw - 1
         else:
             cx = (36 - nw) // 2
             
-        cy = 33 - nh # Baseline Y = 33
+        cy = 33 - nh
         cell.paste(scaled, (cx, cy), scaled)
         return cell
 
 def render_phrase_cell(ch, offset_x=0):
-    """เรนเดอร์ตัวอักษรเฉพาะสำหรับคำว่า 'ชื่อตัวละครหลัก' ด้วย Word-Grouping Optical Kerning"""
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
-    width_scale = 1.20
     
     if ch == 'ชื่':
         t_b = Image.new('RGBA', (80, 80), (0, 0, 0, 0))
@@ -135,7 +129,7 @@ def render_phrase_cell(ch, offset_x=0):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(cropped.width * width_scale))
+        nw = int(round(cropped.width * WIDTH_SCALE))
         nh = cropped.height
         scaled = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
         cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
@@ -166,7 +160,7 @@ def render_phrase_cell(ch, offset_x=0):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(cropped.width * width_scale))
+        nw = int(round(cropped.width * WIDTH_SCALE))
         nh = cropped.height
         scaled = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
         cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
@@ -179,12 +173,12 @@ def render_phrase_cell(ch, offset_x=0):
         ImageDraw.Draw(t).text((40, 60), ch, font=f32, fill=(255, 255, 255, 255), anchor='ms')
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(crop.width * width_scale))
+        nw = int(round(crop.width * WIDTH_SCALE))
         nh = crop.height
         scaled = crop.resize((nw, nh), Image.Resampling.LANCZOS)
         
         if ch == 'ะ':
-            cx = 2
+            cx = 1 # ชิดซ้ายสุด
         else:
             cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
             
@@ -194,7 +188,7 @@ def render_phrase_cell(ch, offset_x=0):
 
 def main():
     print("=================================================================")
-    print("[*] 1. เริ่มเรนเดอร์ Pro Thai Font (ก สูงเท่า ช, ต, ล, ห + ตัวชิด)...")
+    print("[*] 1. เริ่มเรนเดอร์ Pro Thai Font (Ultra-Tight Edition 1.32x)...")
     print("=================================================================")
     
     with open(DDS_PATH, "rb") as f:
@@ -204,7 +198,7 @@ def main():
     BLOCK_BYTES = 16
 
     # 1. อัปเดตแป้นพิมพ์ 83 ปุ่ม
-    print(f"[*] กำลังแพตช์แป้นพิมพ์ 83 ปุ่ม (ยกระดับวรรณยุกต์เดี่ยวชิดบน)...")
+    print(f"[*] กำลังแพตช์แป้นพิมพ์ 83 ปุ่ม (ขยายขนาด 1.32x + วรรณยุกต์เดี่ยวชิดบน)...")
     for kana, (row, col), thai in KEYBOARD_MAPPING:
         cell = render_standalone_glyph(thai)
         rows_dxt = encode_cell_dxt5(cell)
@@ -214,25 +208,22 @@ def main():
             off = 128 + ((by0 + by) * WIDTH_BLOCKS + bx0) * BLOCK_BYTES
             dds[off : off + 144] = rows_dxt[by]
 
-    # 2. ปรับแต่งตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก'
-    # ชื่ (Row 2 Col 67), อ (Row 2 Col 54), ตั (Row 2 Col 69), ว (Row 2 Col 45),
-    # ล (Row 2 Col 44), ะ (Row 2 Col 65), ค (Row 1 Col 103), ร (Row 2 Col 41),
-    # ห (Row 2 Col 50), ลั (Row 2 Col 71), ก (Row 1 Col 97)
+    # 2. ปรับแต่งตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Ultra-Tight Kerning
     phrase_chars = [
-        ('ชื่', 2, 67,  3), # ชิดขวาเพื่อดูดติด 'อ'
-        ('อ',  2, 54, -3), # ชิดซ้าย
-        ('ตั', 2, 69,  3), # ชิดขวาเพื่อดูดติด 'ว'
-        ('ว',  2, 45, -3), # ชิดซ้าย
-        ('ล',  2, 44,  0),
+        ('ชื่', 2, 67,  5), # ขยับขวา +5px ดึงดูด 'อ'
+        ('อ',  2, 54, -5), # ขยับซ้าย -5px ดึงดูด 'ชื่'
+        ('ตั', 2, 69,  5), # ขยับขวา +5px ดึงดูด 'ว'
+        ('ว',  2, 45, -5), # ขยับซ้าย -5px ดึงดูด 'ตั'
+        ('ล',  2, 44,  1),
         ('ะ',  2, 65,  0), # ชิดซ้ายสุด
-        ('ค',  1, 103, 3), # ชิดขวาเพื่อดูดติด 'ร'
-        ('ร',  2, 41, -4), # ชิดซ้าย
-        ('ห',  2, 50,  2), # ชิดขวาเพื่อดูดติด 'ลั'
+        ('ค',  1, 103, 4), # ขยับขวา +4px ดึงดูด 'ร'
+        ('ร',  2, 41, -5), # ขยับซ้าย -5px ดึงดูด 'ค'
+        ('ห',  2, 50,  3), # ขยับขวา +3px ดึงดูด 'ลั'
         ('ลั', 2, 71,  0),
-        ('ก',  1, 97, -3), # ชิดซ้าย
+        ('ก',  1, 97, -5), # ขยับซ้าย -5px ดึงดูด 'ลั'
     ]
 
-    print("[*] กำลังแพตช์ตัวอักษร 'ชื่อตัวละครหลัก' ด้วยความสูงสม่ำเสมอ + ช่องไฟชิด...")
+    print("[*] กำลังแพตช์ตัวอักษร 'ชื่อตัวละครหลัก' แบบ Ultra-Tight ชิดสนิท...")
     for ch, row, col, offset_x in phrase_chars:
         cell = render_phrase_cell(ch, offset_x)
         rows_dxt = encode_cell_dxt5(cell)
@@ -288,7 +279,7 @@ def main():
             print(f"    [+] เขียนข้อความ '{target_str}' ลงใน Entry 36 ({p}) เรียบร้อย")
 
     print("\n=================================================================")
-    print("[SUCCESS] การติดตั้งฟอนต์ตัวชิดและสูงเท่ากันเสร็จสมบูรณ์ 100%!")
+    print("[SUCCESS] การติดตั้ง Pro Thai Font (Ultra-Tight) เสร็จสมบูรณ์ 100%!")
     print("=================================================================")
 
 if __name__ == "__main__":
