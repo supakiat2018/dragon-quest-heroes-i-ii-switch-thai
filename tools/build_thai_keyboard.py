@@ -20,7 +20,7 @@ WORKSPACE_DIR = os.path.join(SWITCH_DIR, "workspace")
 TEX_DIR = os.path.join(WORKSPACE_DIR, "tex_55")
 OUT_G1T_DIR = os.path.join(WORKSPACE_DIR, "out_g1t")
 
-FONT_TTF = os.path.join(SWITCH_DIR, "fonts", "LeelaUIb.ttf")
+FONT_TTF = os.path.join(SWITCH_DIR, "fonts", "Pridi-Bold.ttf")
 G1T_TOOL = os.path.join(SWITCH_DIR, "tools", "g1t_tool.py")
 
 def encode_cell_dxt5(cell_img):
@@ -207,12 +207,12 @@ KEYBOARD_MAPPING = [
 ]
 
 def render_thai_char(f_std, f_tall, f_mark, ch):
-    """เรนเดอร์ตัวอักษรไทยให้มีขนาดสมดุล เท่ากันทุกตัว และไม่ล้นขอบ"""
+    """เรนเดอร์ตัวอักษรไทย Pridi-Bold ให้มีขนาดสมดุล เท่ากันทุกตัว และไม่ล้นขอบ"""
     cell = Image.new('RGBA', (CELL_SIZE, CELL_SIZE), (0, 0, 0, 0))
     d = ImageDraw.Draw(cell)
     
     descenders = ['ฎ', 'ฏ', 'ฐ', 'ฤ', 'ฦ', 'ญ']
-    tall_vowels = ['เ', 'แ', 'โ', 'ใ', 'ไ', 'ำ']
+    tall_vowels = ['โ', 'ใ', 'ไ']
     tails = ['ป', 'ฝ', 'ฟ']
     marks = ['ิ', 'ี', 'ึ', 'ื', '่', '้', '๊', '๋', '์', '็', 'ั', 'ํ', 'ุ', 'ู', 'ฺ']
     digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -233,19 +233,21 @@ def render_thai_char(f_std, f_tall, f_mark, ch):
         else:
             d.text((18, 18), ch, font=f_mark, fill=(255, 255, 255, 255), anchor='mm')
     elif ch in tall_vowels:
+        d.text((18, 33), ch, font=f_tall, fill=(255, 255, 255, 255), anchor='ms')
+    elif ch == 'ำ':
         d.text((18, 32), ch, font=f_tall, fill=(255, 255, 255, 255), anchor='ms')
     elif ch in descenders:
-        d.text((18, 26), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+        d.text((18, 25), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
     elif ch in tails:
-        d.text((18, 30), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+        d.text((18, 31), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
     elif ch in digits:
-        d.text((18, 29), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+        d.text((18, 30), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
     elif ch in ['-', '~', '.']:
         base = 22 if ch in ['-', '~'] else 30
         d.text((18, base), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
     else:
-        # พยัญชนะมาตรฐาน ความสูง 17-18px เท่ากัน 100%
-        d.text((18, 28), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
+        # พยัญชนะมาตรฐาน ความสูง 20-21px เท่ากัน 100%
+        d.text((18, 29), ch, font=f_std, fill=(255, 255, 255, 255), anchor='ms')
         
     return cell
 
@@ -254,10 +256,10 @@ def patch_dds():
     with open(ORIG_DDS, "rb") as f:
         dds_bytes = bytearray(f.read())
         
-    f_std = ImageFont.truetype(FONT_TTF, 34)
-    f_tall = ImageFont.truetype(FONT_TTF, 30)
-    f_mark = ImageFont.truetype(FONT_TTF, 38)
-    print(f"[*] Encoding and patching {len(KEYBOARD_MAPPING)} Thai glyph cells into DDS (uniform balanced size)...")
+    f_std = ImageFont.truetype(FONT_TTF, 37)
+    f_tall = ImageFont.truetype(FONT_TTF, 34)
+    f_mark = ImageFont.truetype(FONT_TTF, 36)
+    print(f"[*] Encoding and patching {len(KEYBOARD_MAPPING)} Thai glyph cells into DDS (Pridi-Bold uniform)...")
     
     for key_char, (row, col), thai_char in KEYBOARD_MAPPING:
         cell_img = render_thai_char(f_std, f_tall, f_mark, thai_char)
