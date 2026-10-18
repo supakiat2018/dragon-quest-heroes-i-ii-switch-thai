@@ -95,7 +95,8 @@ def render_standalone_glyph(ch):
         cell.paste(scaled, (cx, cy), scaled)
         return cell
 
-def render_phrase_cell(ch, offset_x=0):
+def render_phrase_cell(ch):
+    """เรนเดอร์ตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Uniform Monospace Kerning ช่องไฟเท่ากันทุกตัว"""
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
     
     if ch == 'ชื่':
@@ -129,11 +130,10 @@ def render_phrase_cell(ch, offset_x=0):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(cropped.width * WIDTH_SCALE))
-        nh = cropped.height
-        scaled = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
-        cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
-        cy = y_t
+        target_w = 31
+        scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
+        cx = (36 - target_w) // 2
+        cy = coords[:, 0].min()
         cell.paste(scaled, (cx, cy), scaled)
         return cell
 
@@ -160,11 +160,10 @@ def render_phrase_cell(ch, offset_x=0):
         
         coords = np.argwhere(np.array(can)[:, :, 3] > 20)
         cropped = can.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(cropped.width * WIDTH_SCALE))
-        nh = cropped.height
-        scaled = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
-        cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
-        cy = y_v
+        target_w = 31
+        scaled = cropped.resize((target_w, cropped.height), Image.Resampling.LANCZOS)
+        cx = (36 - target_w) // 2
+        cy = coords[:, 0].min()
         cell.paste(scaled, (cx, cy), scaled)
         return cell
 
@@ -173,22 +172,28 @@ def render_phrase_cell(ch, offset_x=0):
         ImageDraw.Draw(t).text((40, 60), ch, font=f32, fill=(255, 255, 255, 255), anchor='ms')
         coords = np.argwhere(np.array(t)[:, :, 3] > 20)
         crop = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
-        nw = int(round(crop.width * WIDTH_SCALE))
-        nh = crop.height
-        scaled = crop.resize((nw, nh), Image.Resampling.LANCZOS)
         
-        if ch == 'ะ':
-            cx = 1 # ชิดซ้ายสุด
-        else:
-            cx = max(0, min(36 - nw, (36 - nw) // 2 + offset_x))
+        if ch in ['ะ']:
+            target_w = 31
+            cx = 2
+        elif ch in ['ว', 'ร']:
+            target_w = 29
+            cx = 3
+        elif ch in ['ค', 'ห', 'ก']:
+            target_w = 32
+            cx = (36 - target_w) // 2
+        else: # อ, ล
+            target_w = 31
+            cx = (36 - target_w) // 2
             
-        cy = 33 - nh
+        scaled = crop.resize((target_w, crop.height), Image.Resampling.LANCZOS)
+        cy = 33 - crop.height
         cell.paste(scaled, (cx, cy), scaled)
         return cell
 
 def main():
     print("=================================================================")
-    print("[*] 1. เริ่มเรนเดอร์ Pro Thai Font (Ultra-Tight Edition 1.32x)...")
+    print("[*] 1. เริ่มเรนเดอร์ Pro Thai Font (Uniform Monospace Kerning)...")
     print("=================================================================")
     
     with open(DDS_PATH, "rb") as f:
@@ -208,24 +213,24 @@ def main():
             off = 128 + ((by0 + by) * WIDTH_BLOCKS + bx0) * BLOCK_BYTES
             dds[off : off + 144] = rows_dxt[by]
 
-    # 2. ปรับแต่งตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Ultra-Tight Kerning
+    # 2. ปรับแต่งตัวอักษรสำหรับข้อความ 'ชื่อตัวละครหลัก' ด้วย Uniform Monospace Kerning
     phrase_chars = [
-        ('ชื่', 2, 67,  5), # ขยับขวา +5px ดึงดูด 'อ'
-        ('อ',  2, 54, -5), # ขยับซ้าย -5px ดึงดูด 'ชื่'
-        ('ตั', 2, 69,  5), # ขยับขวา +5px ดึงดูด 'ว'
-        ('ว',  2, 45, -5), # ขยับซ้าย -5px ดึงดูด 'ตั'
-        ('ล',  2, 44,  1),
-        ('ะ',  2, 65,  0), # ชิดซ้ายสุด
-        ('ค',  1, 103, 4), # ขยับขวา +4px ดึงดูด 'ร'
-        ('ร',  2, 41, -5), # ขยับซ้าย -5px ดึงดูด 'ค'
-        ('ห',  2, 50,  3), # ขยับขวา +3px ดึงดูด 'ลั'
-        ('ลั', 2, 71,  0),
-        ('ก',  1, 97, -5), # ขยับซ้าย -5px ดึงดูด 'ลั'
+        ('ชื่', 2, 67),
+        ('อ',  2, 54),
+        ('ตั', 2, 69),
+        ('ว',  2, 45),
+        ('ล',  2, 44),
+        ('ะ',  2, 65),
+        ('ค',  1, 103),
+        ('ร',  2, 41),
+        ('ห',  2, 50),
+        ('ลั', 2, 71),
+        ('ก',  1, 97),
     ]
 
-    print("[*] กำลังแพตช์ตัวอักษร 'ชื่อตัวละครหลัก' แบบ Ultra-Tight ชิดสนิท...")
-    for ch, row, col, offset_x in phrase_chars:
-        cell = render_phrase_cell(ch, offset_x)
+    print("[*] กำลังแพตช์ตัวอักษร 'ชื่อตัวละครหลัก' แบบ Uniform Kerning เกลี่ยช่องไฟเท่ากันทุกตัว...")
+    for ch, row, col in phrase_chars:
+        cell = render_phrase_cell(ch)
         rows_dxt = encode_cell_dxt5(cell)
         bx0 = (col * 36) // 4
         by0 = (row * 36) // 4
