@@ -1,0 +1,9 @@
+# Git ignore for Switch DQH I & II Thai Translation
+workspace/*.bin
+workspace/*.g1t
+workspace/*.dds
+workspace/entry_*.png
+workspace/tex_55/
+workspace/out_g1t/
+__pycache__/
+*.pyc
