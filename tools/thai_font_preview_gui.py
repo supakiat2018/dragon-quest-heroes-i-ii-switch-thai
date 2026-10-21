@@ -141,13 +141,13 @@ def render_tuned_single_glyph(ch, config, baseline=32):
     if ch in UPPER_MARKS:
         default_ox, default_oy, default_w, default_h = 0, -3, 15, 6
     elif ch == 'เ':
-        default_ox, default_oy, default_w, default_h = -2, 0, 10, 19
+        default_ox, default_oy, default_w, default_h = 7, 0, 10, 19
     elif ch == 'แ':
-        default_ox, default_oy, default_w, default_h = -2, 0, 18, 19
+        default_ox, default_oy, default_w, default_h = 6, 0, 18, 19
     elif ch in 'โใไ':
         default_ox, default_oy, default_w, default_h = -2, 0, 14, 26
     elif ch in 'าะ':
-        default_ox, default_oy, default_w, default_h = -2, 0, 14, 19
+        default_ox, default_oy, default_w, default_h = -7, 0, 14, 19
     elif ch == 'ำ':
         default_ox, default_oy, default_w, default_h = -2, 0, 21, 27
     elif ch == 'ๅ':
@@ -309,7 +309,7 @@ class ThaiFontMasterStudio(tk.Tk):
         self.config_data = load_or_create_config()
         self.ensure_default_clusters()
         
-        self.current_cluster = "เริ่"
+        self.current_cluster = "ริ่"
         self.current_layer_part = "whole" # 'whole', or char like 'เ', 'ร', 'ิ', '่'
         
         style = ttk.Style(self)
@@ -356,7 +356,7 @@ class ThaiFontMasterStudio(tk.Tk):
     def ensure_default_clusters(self):
         if 'clusters' not in self.config_data:
             self.config_data['clusters'] = {}
-        for c in ["เริ่", "ร้", "ล่", "เล่", "เซ", "ชื่", "ตั้"]:
+        for c in ["ริ่", "ร้", "ล่", "ชื่", "ตั้", "กิ่", "กิ้"]:
             if c not in self.config_data['clusters']:
                 self.config_data['clusters'][c] = {
                     'whole_ox': 0, 'whole_oy': 0,
@@ -376,14 +376,14 @@ class ThaiFontMasterStudio(tk.Tk):
         
         tk.Label(top_bar, text="เลือกคลัสเตอร์ PUA ที่ต้องการปรับ:", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=10, pady=8)
         
-        for c_name in ["เริ่", "ร้", "ล่", "เล่", "เซ", "ชื่", "ตั้"]:
+        for c_name in ["ริ่", "ร้", "ล่", "ชื่", "ตั้", "กิ่", "กิ้"]:
             b = tk.Button(top_bar, text=f" [ {c_name} ] ", font=('Segoe UI', 11, 'bold'), bg="#2b354c", fg="#ffffff",
                           relief=tk.FLAT, cursor="hand2", command=lambda cn=c_name: self.select_pua_cluster(cn))
             b.pack(side=tk.LEFT, padx=3, pady=6)
             
         tk.Label(top_bar, text=" หรือพิมพ์ผสมเอง:", bg="#1f2636", fg="#94a3b8", font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(10, 2))
         self.entry_custom_cluster = tk.Entry(top_bar, width=6, font=('Segoe UI', 11, 'bold'), bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
-        self.entry_custom_cluster.insert(0, "เริ่")
+        self.entry_custom_cluster.insert(0, "ริ่")
         self.entry_custom_cluster.pack(side=tk.LEFT, padx=2)
         tk.Button(top_bar, text="โหลด", bg="#3b82f6", fg="#ffffff", font=('Segoe UI', 9, 'bold'), relief=tk.FLAT,
                   command=lambda: self.select_pua_cluster(self.entry_custom_cluster.get().strip())).pack(side=tk.LEFT, padx=4)
@@ -395,7 +395,7 @@ class ThaiFontMasterStudio(tk.Tk):
         left_f = tk.LabelFrame(work, text=" แผงปรับแต่งชิ้นส่วนย่อย (Layer Parts) ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold'), bd=1)
         left_f.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5, ipadx=10, ipady=5)
         
-        self.lbl_pua_cluster_title = tk.Label(left_f, text="คลัสเตอร์: [ เริ่ ]", bg="#121622", fg="#fde047", font=('Segoe UI', 14, 'bold'), relief=tk.RIDGE, bd=2)
+        self.lbl_pua_cluster_title = tk.Label(left_f, text="คลัสเตอร์: [ ริ่ ]", bg="#121622", fg="#fde047", font=('Segoe UI', 14, 'bold'), relief=tk.RIDGE, bd=2)
         self.lbl_pua_cluster_title.pack(fill=tk.X, padx=10, pady=8, ipady=4)
         
         # Sub-layer Buttons
@@ -659,31 +659,32 @@ class ThaiFontMasterStudio(tk.Tk):
         self.update_pua_sentence()
         
     def update_pua_sentence(self):
-        # Render simulated buttons using full real-time tuning for all characters
+        # Render simulated buttons using full 949 cluster formula (Leading vowels are standalone!)
         def get_cell(tok):
             if tok in self.config_data.get('clusters', {}) and (len(tok) > 1 or self.config_data['clusters'][tok].get('layers')):
                 img, _ = compose_pua_cluster_image(tok, self.config_data)
                 return img
             return render_tuned_single_glyph(tok, self.config_data)
             
-        c_eri = get_cell("เริ่")
-        c_le  = get_cell("เล่")
-        c_re  = get_cell("ร้")
-        c_se  = get_cell("เซ")
+        cr_e  = get_cell('เ') # สระหน้าเดี่ยว ดันชิดขวาสุด
+        c_ri  = get_cell("ริ่") # PUA คลัสเตอร์ 3 ชั้น (ร + ิ + ่)
+        c_lo  = get_cell("ล่") # PUA คลัสเตอร์ 2 ชั้น (ล + ่)
+        c_re  = get_cell("ร้") # PUA คลัสเตอร์ 2 ชั้น (ร + ้)
         
         cr_m  = get_cell('ม')
         cr_n  = get_cell('น')
         cr_s  = get_cell('ส')
-        cr_a  = get_cell('า')
+        cr_a  = get_cell('า') # สระตามเดี่ยว ดันชิดซ้ายสุด
         cr_ng = get_cell('ง')
+        cr_so = get_cell('ซ') # พยัญชนะเดี่ยว
         cr_f  = get_cell('ฟ')
         cr_l  = get_cell('ล')
         cr_b  = get_cell('บ')
         
         menus_cells = [
-            ("เริ่มเล่น / เริ่มเกม", [c_eri, cr_m, c_le, cr_n]),
-            ("สร้างเซฟ", [cr_s, c_re, cr_a, cr_ng, c_se, cr_f]),
-            ("ลบเซฟ", [cr_l, cr_b, c_se, cr_f])
+            ("เริ่มเล่น", [cr_e, c_ri, cr_m, cr_e, c_lo, cr_n]),
+            ("สร้างเซฟ", [cr_s, c_re, cr_a, cr_ng, cr_e, cr_so, cr_f]),
+            ("ลบเซฟ", [cr_l, cr_b, cr_e, cr_so, cr_f])
         ]
         
         can_w = 800
@@ -716,16 +717,20 @@ class ThaiFontMasterStudio(tk.Tk):
         tight_presets = {
             'ส': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 20},
             'ร้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 15, 'height': 19}, '้': {'offset_x': 0, 'offset_y': 0, 'width': 9, 'height': 9}}},
-            'า': {'offset_x': -2, 'offset_y': 0, 'width': 14, 'height': 19},
+            'า': {'offset_x': -7, 'offset_y': 0, 'width': 14, 'height': 19},
             'ง': {'offset_x': 0, 'offset_y': 0, 'width': 16, 'height': 19},
-            'เซ': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'เ': {'offset_x': 0, 'offset_y': 0, 'width': 10, 'height': 19}, 'ซ': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19}}},
+            'เ': {'offset_x': 7, 'offset_y': 0, 'width': 10, 'height': 19},
+            'แ': {'offset_x': 6, 'offset_y': 0, 'width': 18, 'height': 19},
+            'ซ': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19},
             'ฟ': {'offset_x': 0, 'offset_y': 0, 'width': 19, 'height': 25},
             'ล': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19},
             'บ': {'offset_x': 0, 'offset_y': 0, 'width': 19, 'height': 19},
-            'เริ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'เ': {'offset_x': 0, 'offset_y': 0, 'width': 10, 'height': 19}, 'ร': {'offset_x': 0, 'offset_y': 0, 'width': 15, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': -3, 'width': 15, 'height': 6}, '่': {'offset_x': 0, 'offset_y': 0, 'width': 8, 'height': 8}}},
+            'ริ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 15, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': -3, 'width': 15, 'height': 6}, '่': {'offset_x': 0, 'offset_y': 0, 'width': 8, 'height': 8}}},
             'ม': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19},
-            'เล่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'เ': {'offset_x': 0, 'offset_y': 0, 'width': 10, 'height': 19}, 'ล': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19}, '่': {'offset_x': 0, 'offset_y': 0, 'width': 8, 'height': 8}}},
+            'ล่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ล': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19}, '่': {'offset_x': 0, 'offset_y': 0, 'width': 8, 'height': 8}}},
             'น': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19},
+            'ชื่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ช': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19}, 'ื': {'offset_x': 0, 'offset_y': -3, 'width': 16, 'height': 6}, '่': {'offset_x': 0, 'offset_y': 0, 'width': 8, 'height': 8}}},
+            'ตั้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ต': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19}, 'ั': {'offset_x': 0, 'offset_y': -3, 'width': 15, 'height': 6}, '้': {'offset_x': 0, 'offset_y': 0, 'width': 9, 'height': 9}}},
         }
         for k, v in tight_presets.items():
             if 'whole_ox' in v or 'layers' in v:
@@ -982,12 +987,15 @@ class ThaiFontMasterStudio(tk.Tk):
         
     def update_word_test(self):
         text = self.entry_test.get().strip()
-        if not text: text = "เริ่มเล่น"
+        if not text: text = "เริ่มเล่น   สร้างเซฟ   ลบเซฟ"
         lines = text.split('\n')
         board_w = 1100
         board_h = max(260, len(lines) * 100 + 40)
         img = Image.new('RGBA', (board_w, board_h), (18, 22, 34, 255))
         draw = ImageDraw.Draw(img)
+        
+        LEAD_VOWELS = set('เแโใไ')
+        TRAIL_VOWELS = set('ะาำฤฦๅ')
         
         yc = 25
         for line in lines:
@@ -996,32 +1004,51 @@ class ThaiFontMasterStudio(tk.Tk):
             xc = 30
             for part in parts:
                 cells = []
-                # Check for special clusters first
-                if "เริ่มเล่น" in part:
-                    c_eri, _ = compose_pua_cluster_image("เริ่", self.config_data)
-                    c_lo, _ = compose_pua_cluster_image("ล่", self.config_data)
-                    cells = [c_eri, render_tuned_single_glyph('ม', self.config_data), render_tuned_single_glyph('เ', self.config_data), c_lo, render_tuned_single_glyph('น', self.config_data)]
-                elif "สร้างเซฟ" in part:
-                    c_re, _ = compose_pua_cluster_image("ร้", self.config_data)
-                    cells = [render_tuned_single_glyph('ส', self.config_data), c_re, render_tuned_single_glyph('า', self.config_data), render_tuned_single_glyph('ง', self.config_data),
-                             render_tuned_single_glyph('เ', self.config_data), render_tuned_single_glyph('ซ', self.config_data), render_tuned_single_glyph('ฟ', self.config_data)]
-                elif "ลบเซฟ" in part:
-                    cells = [render_tuned_single_glyph('ล', self.config_data), render_tuned_single_glyph('บ', self.config_data),
-                             render_tuned_single_glyph('เ', self.config_data), render_tuned_single_glyph('ซ', self.config_data), render_tuned_single_glyph('ฟ', self.config_data)]
-                else:
-                    for ch in part:
+                i = 0
+                n = len(part)
+                while i < n:
+                    ch = part[i]
+                    if ch == ' ':
+                        # ช่องว่าง 16px
+                        space_cell = Image.new('RGBA', (16, 36), (0, 0, 0, 0))
+                        cells.append(space_cell)
+                        i += 1
+                    elif ch in LEAD_VOWELS or ch in TRAIL_VOWELS:
+                        # สระหน้า หรือ สระตาม เป็นตัวเดี่ยว 1 ช่องเสมอ (ตามสูตร 949)
                         cells.append(render_tuned_single_glyph(ch, self.config_data))
+                        i += 1
+                    elif ch in UPPER_MARKS or ch in LOWER_MARKS or ch in TONE_MARKS:
+                        # เครื่องหมายลอยหลุดมาเดี่ยวๆ
+                        cells.append(render_tuned_single_glyph(ch, self.config_data))
+                        i += 1
+                    else:
+                        # พยัญชนะ: ดูว่ามีสระบน/ล่าง หรือวรรณยุกต์ตามหลังหรือไม่
+                        combo = ch
+                        j = i + 1
+                        while j < n and (part[j] in UPPER_MARKS or part[j] in LOWER_MARKS or part[j] in TONE_MARKS):
+                            combo += part[j]
+                            j += 1
+                        if len(combo) > 1:
+                            # PUA คลัสเตอร์รวมร่าง (ริ่, ร้, ล่, ตั้, กิ่, ฯลฯ)
+                            c_img, _ = compose_pua_cluster_image(combo, self.config_data)
+                            cells.append(c_img)
+                            i = j
+                        else:
+                            # พยัญชนะเดี่ยว
+                            cells.append(render_tuned_single_glyph(ch, self.config_data))
+                            i += 1
                         
-                btn_w = len(cells) * 36 + 24
+                btn_w = sum(c.width for c in cells) + 24
                 draw.rectangle([xc, yc, xc + btn_w, yc + 48], fill=(22, 35, 60), outline=(218, 165, 32), width=2)
                 draw.line([xc + 4, yc + 8, xc + btn_w - 4, yc + 8], fill=(220, 50, 50, 120), width=1)
                 draw.line([xc + 4, yc + 41, xc + btn_w - 4, yc + 41], fill=(50, 120, 220, 120), width=1)
                 
                 x_char = xc + 12
                 for cell in cells:
-                    draw.rectangle([x_char, yc + 6, x_char + 35, yc + 41], outline=(55, 75, 110, 80))
+                    cw = cell.width
+                    draw.rectangle([x_char, yc + 6, x_char + cw - 1, yc + 41], outline=(55, 75, 110, 80))
                     img.paste(cell, (x_char, yc + 6), cell)
-                    x_char += 36
+                    x_char += cw
                 xc += btn_w + 18
             yc += 75
             
@@ -1049,7 +1076,7 @@ class ThaiFontMasterStudio(tk.Tk):
         c.create_window((0, 0), window=inner, anchor=tk.NW)
         
         groups = [
-            ("1. คลัสเตอร์ PUA พิเศษ:", ["เริ่", "ร้", "ล่", "เล่", "เซ", "ชื่", "ตั้"]),
+            ("1. คลัสเตอร์ PUA ซ้อนชั้น (สูตร 949 ตัว):", ["ริ่", "ร้", "ล่", "ชื่", "ตั้", "กิ่", "กิ้"]),
             ("2. พยัญชนะไทย 44 ตัว (ก - ฮ):", list("กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮ")),
             ("3. สระแนวบรรทัด:", list("ะาำเแโใไฤฦๅ")),
             ("4. สระบน และ สระล่าง (เดี่ยว):", ["ิ", "ี", "ึ", "ื", "ุ", "ู", "ั", "็"]),
