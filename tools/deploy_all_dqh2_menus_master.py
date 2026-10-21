@@ -34,7 +34,8 @@ FONT_TTF = os.path.join(SWITCH_DIR, "fonts", "Pridi-Bold.ttf")
 
 sys.path.append(os.path.join(SWITCH_DIR, "tools"))
 sys.path.append(WORKSPACE_DIR)
-from build_thai_keyboard import encode_cell_dxt5, pack_entry_chunks
+from build_thai_keyboard import encode_cell_dxt5, pack_entry_chunks, KEYBOARD_MAPPING
+from deploy_english_keyboard_romfs import copy_dxt5_cell, PAGE1_MAPPING, PAGE2_MAPPING, KATAKANA_ORDER, KATAKANA_COORDS, SRC_CHARS
 
 TITLE_ID = "0100CD3000BDC000"
 ATMO_BIN = os.path.join(BASE_DIR, "mod", "atmosphere", "contents", TITLE_ID, "romfs", "dqh2", "LINKDATA.BIN")
@@ -356,9 +357,26 @@ RAW_MENU_SPECS = [
     {"name": "คำสั่ง: ยกเลิกเก็บ", "text": "ยกเลิกเก็บ", "tiles": 3, "fsz": 26, "entry": 36, "off": 88488, "max_b": 22, "c_type": "normal"},
 ]
 
+def apply_pure_english_keyboard(dds_bytes):
+    print("\n[+] บังคับและติดตั้งแป้นพิมพ์ภาษาอังกฤษแท้ 166 ปุ่ม (A-Z, a-z, 0-9) ลงใน DDS...")
+    # 1. Page 1 (83 keys: A-Z, 0-9, สระช่วยพิมพ์, สัญลักษณ์)
+    for i, (kana, (dst_r, dst_c), _) in enumerate(KEYBOARD_MAPPING):
+        ch = PAGE1_MAPPING[i]
+        src_r, src_c = SRC_CHARS[ch]
+        copy_dxt5_cell(dds_bytes, src_r, src_c, dst_r, dst_c)
+
+    # 2. Page 2 (83 keys: a-z, 0-9, สระช่วยพิมพ์, สัญลักษณ์)
+    for i, kana in enumerate(KATAKANA_ORDER):
+        ch = PAGE2_MAPPING[i]
+        src_r, src_c = SRC_CHARS[ch]
+        dst_r, dst_c = KATAKANA_COORDS[kana]
+        copy_dxt5_cell(dds_bytes, src_r, src_c, dst_r, dst_c)
+    print("    -> ติดตั้งแป้นพิมพ์ภาษาอังกฤษแท้ 166 ปุ่มเสร็จสมบูรณ์")
+
 def main():
     print("=" * 80)
     print(" [*] MASTER TOOL: ติดตั้งระบบภาพแบนเนอร์ไร้รอยต่อ DQH2 ทุกเมนู (68 เมนู 100%)")
+    print(" [*] พร้อมคืนค่าแป้นพิมพ์ภาษาอังกฤษแท้ 166 ปุ่ม (A-Z, a-z, 0-9) สมบูรณ์แบบ 100%")
     print("=" * 80)
 
     # จัดสรรช่องคันจิต่อเนื่อง
@@ -379,9 +397,12 @@ def main():
     # 1. โหลด DDS
     with open(TARGET_DDS, "rb") as f:
         dds_bytes = bytearray(f.read())
-    kb_hash_before = get_keyboard_checksum(dds_bytes)
     print(f"[+] 1. โหลด Font Sheet DDS: {TARGET_DDS}")
-    print(f"    [CHECK] Checksum แป้นพิมพ์ภาษาอังกฤษก่อนแก้: {kb_hash_before}")
+
+    # บังคับติดตั้งคีย์บอร์ดภาษาอังกฤษแท้ 166 ปุ่มทันที
+    apply_pure_english_keyboard(dds_bytes)
+    kb_hash_before = get_keyboard_checksum(dds_bytes)
+    print(f"    [CHECK] Checksum แป้นพิมพ์ภาษาอังกฤษแท้ 166 ตัว: {kb_hash_before}")
 
     # 2. เรนเดอร์ทั้ง 68 เมนู และฉีดเข้าช่องคันจิ
     print(f"\n[+] 2. เรนเดอร์ภาพแบนเนอร์ทั้ง {len(allocated_specs)} เมนู และฉีดเข้า DDS...")
