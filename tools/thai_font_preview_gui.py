@@ -182,7 +182,7 @@ def render_tuned_single_glyph(ch, config, baseline=32):
     return cell
 
 # Compose multi-layer PUA cluster (e.g. 'เริ่', 'ร้', 'ล่') with 1:1 direct cell placement (NO auto-shrinking!)
-def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baseline=32):
+def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baseline=33):
     cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
     if not cluster_text:
         return cell, {}
@@ -209,7 +209,7 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
         oy = l_cfg.get('offset_y', 0) + whole_oy
         cr_l = get_glyph_crop(lead_ch)
         nat_w, nat_h = cr_l.width, cr_l.height
-        default_w = 18 if lead_ch == 'แ' else (14 if lead_ch in 'โใไ' else 10)
+        default_w = 20 if lead_ch == 'แ' else (16 if lead_ch in 'โใไ' else 12)
         default_h = 26 if lead_ch in 'โใไ' else 19
         w = max(4, l_cfg.get('width', default_w))
         h = max(4, l_cfg.get('height', default_h))
@@ -223,7 +223,7 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
     else:
         x_base_start = (36 - 18) // 2 + whole_ox
         
-    # 2. Base (Option A tight 30px standard)
+    # 2. Base (Option A tight 30px standard, baseline 33)
     if base_ch:
         b_cfg = layers.get(base_ch, {})
         g_cfg = config.get('glyphs', {}).get(base_ch, {})
@@ -246,40 +246,44 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
     else:
         pos_x_b, pos_y_b, w_b, h_b = 3, baseline - 19, 30, 19
         
-    # 3. Upper mark (Option A elevated by default: -6px if tone present, -4px otherwise)
+    # 3. Upper mark (Large 22px width, rests comfortably on top of base at y=7)
     y_top = pos_y_b
     if up_ch:
         u_cfg = layers.get(up_ch, {})
-        def_oy = -6 if tone_ch else -4
         ox = u_cfg.get('offset_x', 0)
-        oy = u_cfg.get('offset_y', def_oy)
+        oy = u_cfg.get('offset_y', 0)
         cr_u = get_glyph_crop(up_ch)
         nat_w, nat_h = cr_u.width, cr_u.height
-        w_u = max(4, u_cfg.get('width', 18))
+        w_u = max(4, u_cfg.get('width', 22))
         h_u = max(4, u_cfg.get('height', 7))
         sc_u = cr_u if (w_u == nat_w and h_u == nat_h) else cr_u.resize((w_u, h_u), Image.Resampling.LANCZOS)
         
         pos_x_u = pos_x_b + (w_b - w_u) // 2 + ox
-        pos_y_u = pos_y_b - h_u + 2 + oy
+        pos_y_u = pos_y_b - h_u + oy
+        pos_y_u = max(5, min(20, pos_y_u))
         cell.paste(sc_u, (pos_x_u, pos_y_u), sc_u)
         layer_bounds[up_ch] = (pos_x_u, pos_y_u, w_u, h_u)
         y_top = pos_y_u
         
-    # 4. Tone mark (Option A ceiling elevated by default: -11px if upper mark present, -5px otherwise)
+    # 4. Tone mark (Clearly visible on top! Height 6-8px, width 10-11px, starts at ceiling y=0)
     if tone_ch:
         t_cfg = layers.get(tone_ch, {})
-        def_oy = -11 if up_ch else -5
-        def_ox = 4 if w_b >= 28 else 0
+        def_w_t = 10 if up_ch else 11
+        def_h_t = 6 if up_ch else 8
+        def_ox = 3 if w_b >= 28 else 0
         ox = t_cfg.get('offset_x', def_ox)
-        oy = t_cfg.get('offset_y', def_oy)
+        oy = t_cfg.get('offset_y', 0)
         cr_t = get_glyph_crop(tone_ch)
         nat_w, nat_h = cr_t.width, cr_t.height
-        w_t = max(4, t_cfg.get('width', 10))
-        h_t = max(4, t_cfg.get('height', 10))
+        w_t = max(4, t_cfg.get('width', def_w_t))
+        h_t = max(4, t_cfg.get('height', def_h_t))
         sc_t = cr_t if (w_t == nat_w and h_t == nat_h) else cr_t.resize((w_t, h_t), Image.Resampling.LANCZOS)
         
-        pos_x_t = pos_x_b + w_b - w_t - 1 + ox
-        pos_y_t = y_top - h_t - 1 + oy
+        pos_x_t = pos_x_b + w_b - w_t - 3 + ox
+        if up_ch:
+            pos_y_t = max(0, min(10, y_top - h_t + oy))
+        else:
+            pos_y_t = max(0, min(20, pos_y_b - h_t - 1 + oy))
         cell.paste(sc_t, (pos_x_t, pos_y_t), sc_t)
         layer_bounds[tone_ch] = (pos_x_t, pos_y_t, w_t, h_t)
         
@@ -613,14 +617,14 @@ class ThaiFontMasterStudio(tk.Tk):
                 }
                 if up_c:
                     self.config_data['clusters'][self.current_cluster]['layers'][up_c] = {
-                        'offset_x': 0, 'offset_y': -6 if tone_c else -4,
-                        'width': 18, 'height': 7
+                        'offset_x': 0, 'offset_y': 0,
+                        'width': 22, 'height': 7
                     }
                 if tone_c:
                     self.config_data['clusters'][self.current_cluster]['layers'][tone_c] = {
-                        'offset_x': 4 if def_w >= 28 else 0,
-                        'offset_y': -11 if up_c else -5,
-                        'width': 10, 'height': 10
+                        'offset_x': 3 if def_w >= 28 else 0,
+                        'offset_y': 0,
+                        'width': 10 if up_c else 11, 'height': 6 if up_c else 8
                     }
                 if low_c:
                     self.config_data['clusters'][self.current_cluster]['layers'][low_c] = {
@@ -951,13 +955,16 @@ class ThaiFontMasterStudio(tk.Tk):
             'ไ': {'offset_x': 18, 'offset_y': 1, 'width': 16, 'height': 26},
             'า': {'offset_x': -7, 'offset_y': 0, 'width': 22, 'height': 19},
             'ะ': {'offset_x': -7, 'offset_y': 0, 'width': 22, 'height': 19},
-            'ร้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 28, 'height': 19}, '้': {'offset_x': 4, 'offset_y': -5, 'width': 11, 'height': 11}}},
-            'ล่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ล': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, '่': {'offset_x': 4, 'offset_y': -4, 'width': 10, 'height': 10}}},
-            'ริ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 28, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': -6, 'width': 18, 'height': 7}, '่': {'offset_x': 4, 'offset_y': -11, 'width': 9, 'height': 9}}},
-            'ชื่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ช': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, 'ื': {'offset_x': 0, 'offset_y': -6, 'width': 20, 'height': 7}, '่': {'offset_x': 5, 'offset_y': -11, 'width': 9, 'height': 9}}},
-            'ตั้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ต': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, 'ั': {'offset_x': 0, 'offset_y': -5, 'width': 18, 'height': 7}, '้': {'offset_x': 5, 'offset_y': -11, 'width': 10, 'height': 10}}},
-            'กิ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': -6, 'width': 18, 'height': 7}, '่': {'offset_x': 5, 'offset_y': -11, 'width': 9, 'height': 9}}},
-            'กิ้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': -6, 'width': 18, 'height': 7}, '้': {'offset_x': 5, 'offset_y': -11, 'width': 10, 'height': 10}}},
+            'ร้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 28, 'height': 19}, '้': {'offset_x': 3, 'offset_y': 0, 'width': 11, 'height': 8}}},
+            'ล่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ล': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 11, 'height': 8}}},
+            'ริ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 28, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'ชื่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ช': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, 'ื': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'ตั้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ต': {'offset_x': 0, 'offset_y': 0, 'width': 30, 'height': 19}, 'ั': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '้': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'กิ่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'กิ้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ิ': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '้': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'กี่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ี': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'กี้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, 'ี': {'offset_x': 0, 'offset_y': 0, 'width': 22, 'height': 7}, '้': {'offset_x': 3, 'offset_y': 0, 'width': 10, 'height': 6}}},
+            'ก่': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ก': {'offset_x': 0, 'offset_y': 0, 'width': 31, 'height': 19}, '่': {'offset_x': 3, 'offset_y': 0, 'width': 11, 'height': 8}}},
         }
         for k, v in tight_presets.items():
             if 'whole_ox' in v or 'layers' in v:

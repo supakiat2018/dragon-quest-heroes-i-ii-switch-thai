@@ -3,7 +3,7 @@
   "description": "DQH2 Thai Font Natural Metrics Tuning Configuration",
   "mode": "natural",
   "global": {
-    "baseline": 32,
+    "baseline": 33,
     "font_size": 32,
     "mark_size": 28
   },
@@ -435,32 +435,32 @@
     "ิ": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 15,
-      "height": 6,
+      "width": 22,
+      "height": 7,
       "natural_w": 15,
       "natural_h": 6
     },
     "ี": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 15,
-      "height": 6,
+      "width": 22,
+      "height": 7,
       "natural_w": 15,
       "natural_h": 6
     },
     "ึ": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 15,
-      "height": 6,
+      "width": 22,
+      "height": 7,
       "natural_w": 15,
       "natural_h": 6
     },
     "ื": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 15,
-      "height": 6,
+      "width": 22,
+      "height": 7,
       "natural_w": 15,
       "natural_h": 6
     },
@@ -483,16 +483,16 @@
     "ั": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 15,
-      "height": 6,
+      "width": 22,
+      "height": 7,
       "natural_w": 15,
       "natural_h": 6
     },
     "็": {
       "offset_x": 0,
       "offset_y": 0,
-      "width": 12,
-      "height": 8,
+      "width": 22,
+      "height": 7,
       "natural_w": 12,
       "natural_h": 8
     },
@@ -554,9 +554,9 @@
     },
     "ํ": {
       "offset_x": 0,
-      "offset_y": -3,
-      "width": 15,
-      "height": 6
+      "offset_y": 0,
+      "width": 22,
+      "height": 7
     }
   },
   "clusters": {
@@ -571,10 +571,10 @@
           "height": 19
         },
         "่": {
-          "offset_x": 4,
-          "offset_y": -4,
-          "width": 10,
-          "height": 10
+          "offset_x": 3,
+          "offset_y": 0,
+          "width": 11,
+          "height": 8
         }
       }
     },
@@ -590,15 +590,15 @@
         },
         "ิ": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "่": {
-          "offset_x": 4,
-          "offset_y": -11,
-          "width": 9,
-          "height": 9
+          "offset_x": 3,
+          "offset_y": 0,
+          "width": 10,
+          "height": 6
         }
       }
     },
@@ -613,10 +613,10 @@
           "height": 19
         },
         "้": {
-          "offset_x": 4,
-          "offset_y": -5,
+          "offset_x": 3,
+          "offset_y": 0,
           "width": 11,
-          "height": 11
+          "height": 8
         }
       }
     },
@@ -632,15 +632,15 @@
         },
         "ื": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 20,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "่": {
-          "offset_x": 5,
-          "offset_y": -11,
-          "width": 9,
-          "height": 9
+          "offset_x": 3,
+          "offset_y": 0,
+          "width": 10,
+          "height": 6
         }
       }
     },
@@ -656,15 +656,15 @@
         },
         "ั": {
           "offset_x": 0,
-          "offset_y": -5,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "้": {
-          "offset_x": 5,
-          "offset_y": -11,
+          "offset_x": 3,
+          "offset_y": 0,
           "width": 10,
-          "height": 10
+          "height": 6
         }
       }
     },
@@ -680,8 +680,8 @@
         },
         "ั": {
           "offset_x": 0,
-          "offset_y": -4,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         }
       }
@@ -698,8 +698,8 @@
         },
         "ั": {
           "offset_x": 0,
-          "offset_y": -4,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         }
       }
@@ -716,15 +716,15 @@
         },
         "ิ": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "่": {
-          "offset_x": 5,
-          "offset_y": -11,
-          "width": 9,
-          "height": 9
+          "offset_x": 3,
+          "offset_y": 0,
+          "width": 10,
+          "height": 6
         }
       }
     },
@@ -740,15 +740,15 @@
         },
         "ิ": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "้": {
-          "offset_x": 5,
-          "offset_y": -11,
+          "offset_x": 3,
+          "offset_y": 0,
           "width": 10,
-          "height": 10
+          "height": 6
         }
       }
     },
@@ -764,15 +764,15 @@
         },
         "ี": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "่": {
-          "offset_x": 4,
-          "offset_y": -11,
+          "offset_x": 3,
+          "offset_y": 0,
           "width": 10,
-          "height": 10
+          "height": 6
         }
       }
     },
@@ -788,15 +788,15 @@
         },
         "ี": {
           "offset_x": 0,
-          "offset_y": -6,
-          "width": 18,
+          "offset_y": 0,
+          "width": 22,
           "height": 7
         },
         "้": {
-          "offset_x": 4,
-          "offset_y": -11,
+          "offset_x": 3,
+          "offset_y": 0,
           "width": 10,
-          "height": 10
+          "height": 6
         }
       }
     },
@@ -811,10 +811,10 @@
           "height": 19
         },
         "่": {
-          "offset_x": 4,
-          "offset_y": -5,
-          "width": 10,
-          "height": 10
+          "offset_x": 3,
+          "offset_y": 0,
+          "width": 11,
+          "height": 8
         }
       }
     }
