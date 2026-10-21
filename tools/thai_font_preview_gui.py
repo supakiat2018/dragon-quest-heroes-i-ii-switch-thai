@@ -223,15 +223,17 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
     else:
         x_base_start = (36 - 18) // 2 + whole_ox
         
-    # 2. Base (e.g. ร)
+    # 2. Base (Option A tight 30px standard)
     if base_ch:
         b_cfg = layers.get(base_ch, {})
-        ox = b_cfg.get('offset_x', 0)
-        oy = b_cfg.get('offset_y', 0) + whole_oy
+        g_cfg = config.get('glyphs', {}).get(base_ch, {})
+        def_w = g_cfg.get('width', 30)
+        def_h = g_cfg.get('height', 19)
+        w_b = max(4, b_cfg.get('width', def_w))
+        h_b = max(4, b_cfg.get('height', def_h))
+        ox = b_cfg.get('offset_x', g_cfg.get('offset_x', 0))
+        oy = b_cfg.get('offset_y', g_cfg.get('offset_y', 0)) + whole_oy
         cr_b = get_glyph_crop(base_ch)
-        nat_w, nat_h = get_natural_glyph_metrics(base_ch)
-        w_b = max(4, b_cfg.get('width', nat_w))
-        h_b = max(4, b_cfg.get('height', nat_h))
         sc_b = cr_b if (w_b == cr_b.width and h_b == cr_b.height) else cr_b.resize((w_b, h_b), Image.Resampling.LANCZOS)
         
         if lead_ch:
@@ -242,18 +244,19 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
         cell.paste(sc_b, (pos_x_b, pos_y_b), sc_b)
         layer_bounds[base_ch] = (pos_x_b, pos_y_b, w_b, h_b)
     else:
-        pos_x_b, pos_y_b, w_b, h_b = 10, baseline - 19, 18, 19
+        pos_x_b, pos_y_b, w_b, h_b = 3, baseline - 19, 30, 19
         
-    # 3. Upper mark (e.g. ิ)
+    # 3. Upper mark (Option A elevated by default: -6px if tone present, -4px otherwise)
     y_top = pos_y_b
     if up_ch:
         u_cfg = layers.get(up_ch, {})
+        def_oy = -6 if tone_ch else -4
         ox = u_cfg.get('offset_x', 0)
-        oy = u_cfg.get('offset_y', -3)
+        oy = u_cfg.get('offset_y', def_oy)
         cr_u = get_glyph_crop(up_ch)
         nat_w, nat_h = cr_u.width, cr_u.height
-        w_u = max(4, u_cfg.get('width', 15))
-        h_u = max(4, u_cfg.get('height', 6))
+        w_u = max(4, u_cfg.get('width', 18))
+        h_u = max(4, u_cfg.get('height', 7))
         sc_u = cr_u if (w_u == nat_w and h_u == nat_h) else cr_u.resize((w_u, h_u), Image.Resampling.LANCZOS)
         
         pos_x_u = pos_x_b + (w_b - w_u) // 2 + ox
@@ -262,15 +265,17 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
         layer_bounds[up_ch] = (pos_x_u, pos_y_u, w_u, h_u)
         y_top = pos_y_u
         
-    # 4. Tone mark (e.g. ่)
+    # 4. Tone mark (Option A ceiling elevated by default: -11px if upper mark present, -5px otherwise)
     if tone_ch:
         t_cfg = layers.get(tone_ch, {})
-        ox = t_cfg.get('offset_x', 0)
-        oy = t_cfg.get('offset_y', 0)
+        def_oy = -11 if up_ch else -5
+        def_ox = 4 if w_b >= 28 else 0
+        ox = t_cfg.get('offset_x', def_ox)
+        oy = t_cfg.get('offset_y', def_oy)
         cr_t = get_glyph_crop(tone_ch)
         nat_w, nat_h = cr_t.width, cr_t.height
-        w_t = max(4, t_cfg.get('width', nat_w))
-        h_t = max(4, t_cfg.get('height', nat_h))
+        w_t = max(4, t_cfg.get('width', 10))
+        h_t = max(4, t_cfg.get('height', 10))
         sc_t = cr_t if (w_t == nat_w and h_t == nat_h) else cr_t.resize((w_t, h_t), Image.Resampling.LANCZOS)
         
         pos_x_t = pos_x_b + w_b - w_t - 1 + ox
@@ -285,8 +290,8 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
         oy = l_cfg.get('offset_y', 0)
         cr_l = get_glyph_crop(low_ch)
         nat_w, nat_h = cr_l.width, cr_l.height
-        w_l = max(4, l_cfg.get('width', nat_w))
-        h_l = max(4, l_cfg.get('height', nat_h))
+        w_l = max(4, l_cfg.get('width', 14))
+        h_l = max(4, l_cfg.get('height', 10))
         sc_l = cr_l if (w_l == nat_w and h_l == nat_h) else cr_l.resize((w_l, h_l), Image.Resampling.LANCZOS)
         
         pos_x_l = pos_x_b + (w_b - w_l) // 2 + ox
@@ -587,18 +592,40 @@ class ThaiFontMasterStudio(tk.Tk):
         else:
             self.lbl_pua_cluster_title.config(text=f"คลัสเตอร์ PUA: [ {self.current_cluster} ]")
         
-        # If current_cluster is a true vertical cluster, ensure default structure in config
+        # If current_cluster is a true vertical cluster, ensure Option A default structure in config
         if len(self.current_cluster) > 1:
             if self.current_cluster not in self.config_data.get('clusters', {}):
                 self.config_data.setdefault('clusters', {})[self.current_cluster] = {
                     'whole_ox': 0, 'whole_oy': 0,
                     'layers': {}
                 }
-                for ch in self.current_cluster:
-                    nw, nh = get_natural_glyph_metrics(ch)
-                    self.config_data['clusters'][self.current_cluster]['layers'][ch] = {
+                base_c = self.current_cluster[0]
+                up_c = ''.join([c for c in self.current_cluster[1:] if c in UPPER_MARKS])[:1]
+                tone_c = ''.join([c for c in self.current_cluster[1:] if c in TONE_MARKS])[:1]
+                low_c = ''.join([c for c in self.current_cluster[1:] if c in LOWER_MARKS])[:1]
+                
+                g_cfg = self.config_data.get('glyphs', {}).get(base_c, {})
+                def_w = g_cfg.get('width', 30)
+                def_h = g_cfg.get('height', 19)
+                self.config_data['clusters'][self.current_cluster]['layers'][base_c] = {
+                    'offset_x': 0, 'offset_y': 0,
+                    'width': def_w, 'height': def_h
+                }
+                if up_c:
+                    self.config_data['clusters'][self.current_cluster]['layers'][up_c] = {
+                        'offset_x': 0, 'offset_y': -6 if tone_c else -4,
+                        'width': 18, 'height': 7
+                    }
+                if tone_c:
+                    self.config_data['clusters'][self.current_cluster]['layers'][tone_c] = {
+                        'offset_x': 4 if def_w >= 28 else 0,
+                        'offset_y': -11 if up_c else -5,
+                        'width': 10, 'height': 10
+                    }
+                if low_c:
+                    self.config_data['clusters'][self.current_cluster]['layers'][low_c] = {
                         'offset_x': 0, 'offset_y': 0,
-                        'width': nw, 'height': nh
+                        'width': 14, 'height': 10
                     }
 
         # Rebuild layer buttons dynamically
@@ -662,9 +689,12 @@ class ThaiFontMasterStudio(tk.Tk):
                 c_info = self.config_data['clusters'][self.current_cluster]
                 ox = c_info.get('whole_ox', 0)
                 oy = c_info.get('whole_oy', 0)
+                base_c = self.current_cluster[0] if self.current_cluster else ''
+                w = c_info.get('layers', {}).get(base_c, {}).get('width', 30)
             else:
                 ox, oy = 0, 0
-            w, h = 32, 32
+                w = 30
+            h = 32
         elif part in LEAD_VOWELS:
             # สระนำหน้า: ล็อกค่ามาตรฐานถาวร Offset X = +18 px, Offset Y = +1 px ทันทีเสมอ ไม่ต้องปรับใหม่!
             self.lbl_active_layer.config(text=f"กำลังปรับชิ้นส่วน: [ สระนำหน้า '{part}' ] (ล็อกชิดขวาสุดถาวร)")
@@ -685,13 +715,16 @@ class ThaiFontMasterStudio(tk.Tk):
             h = g_info.get('height', nh)
         else:
             self.lbl_active_layer.config(text=f"กำลังปรับชิ้นส่วน: [ '{part}' ]")
-            # Load from glyphs first
+            # Load from glyphs first (Option A defaults)
             g_info = self.config_data.get('glyphs', {}).get(part, {})
             nw, nh = get_natural_glyph_metrics(part)
-            ox = g_info.get('offset_x', 0)
-            oy = g_info.get('offset_y', 0)
-            w = g_info.get('width', nw)
-            h = g_info.get('height', nh)
+            def_w = g_info.get('width', (18 if part in UPPER_MARKS else (10 if part in TONE_MARKS else 30)))
+            def_h = g_info.get('height', (7 if part in UPPER_MARKS else (10 if part in TONE_MARKS else 19)))
+            def_oy = -6 if part in UPPER_MARKS else (-11 if part in TONE_MARKS else 0)
+            ox = g_info.get('offset_x', (4 if part in TONE_MARKS else 0))
+            oy = g_info.get('offset_y', def_oy)
+            w = g_info.get('width', def_w)
+            h = g_info.get('height', def_h)
             
             # Check cluster layer override if present for true PUA clusters
             if self.current_cluster in self.config_data.get('clusters', {}):
