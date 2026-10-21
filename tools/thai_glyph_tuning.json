@@ -369,7 +369,7 @@
       "natural_h": 27
     },
     "เ": {
-      "offset_x": 18,
+      "offset_x": 0,
       "offset_y": 1,
       "width": 12,
       "height": 19,
@@ -377,7 +377,7 @@
       "natural_h": 19
     },
     "แ": {
-      "offset_x": 18,
+      "offset_x": 0,
       "offset_y": 1,
       "width": 20,
       "height": 19,
@@ -385,7 +385,7 @@
       "natural_h": 19
     },
     "โ": {
-      "offset_x": 18,
+      "offset_x": 0,
       "offset_y": 1,
       "width": 16,
       "height": 26,
@@ -393,7 +393,7 @@
       "natural_h": 26
     },
     "ใ": {
-      "offset_x": 18,
+      "offset_x": 0,
       "offset_y": 1,
       "width": 16,
       "height": 26,
@@ -401,7 +401,7 @@
       "natural_h": 26
     },
     "ไ": {
-      "offset_x": 18,
+      "offset_x": 0,
       "offset_y": 1,
       "width": 16,
       "height": 26,

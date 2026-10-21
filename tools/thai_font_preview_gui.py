@@ -143,7 +143,8 @@ def render_tuned_single_glyph(ch, config, baseline=32):
     elif ch in 'เแโใไ':
         default_w = 18 if ch == 'แ' else (14 if ch in 'โใไ' else 10)
         default_h = 26 if ch in 'โใไ' else 19
-        default_ox, default_oy = 18, 1
+        default_ox = 9 if ch == 'แ' else (11 if ch in 'โใไ' else 12)
+        default_oy = 1
     elif ch in 'าะ':
         default_ox, default_oy, default_w, default_h = -7, 0, 14, 19
     elif ch == 'ำ':
