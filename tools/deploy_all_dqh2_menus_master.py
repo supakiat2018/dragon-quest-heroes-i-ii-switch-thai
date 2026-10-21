@@ -324,7 +324,7 @@ def render_guide_banner_master(text, num_tiles, font_size=28):
 # นิยามสเปกเมนูทั้ง 68 เมนูของ DQH2 (Cells 505..738 รวม 234 ช่อง)
 RAW_MENU_SPECS = [
     # หมวด 1: หน้าไตเติล & สมุดเซฟ (9 รายการ)
-    {"name": "ปุ่ม: เริ่มเล่น", "text": "เริ่มเล่น", "tiles": 4, "fsz": 30, "entry": 36, "off": 86990, "max_b": 16, "c_type": "rerim"},
+    {"name": "ปุ่ม: เริ่มเล่น", "text": "เริ่มเล่น", "tiles": 4, "fsz": 30, "entry": 36, "off": 86990, "max_b": 16, "c_type": "normal"},
     {"name": "ปุ่ม: สร้างเซฟ", "text": "สร้างเซฟ", "tiles": 4, "fsz": 30, "entry": 36, "off": 87006, "max_b": 25, "c_type": "normal"},
     {"name": "ปุ่ม: ลบเซฟ", "text": "ลบเซฟ", "tiles": 4, "fsz": 30, "entry": 36, "off": 87031, "max_b": 22, "c_type": "normal"},
     {"name": "หัวข้อ: เวลาเล่น", "text": "เวลาเล่น", "tiles": 3, "fsz": 28, "entry": 36, "off": 87066, "max_b": 16, "c_type": "normal"},
