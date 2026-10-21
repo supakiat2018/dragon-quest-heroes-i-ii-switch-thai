@@ -19870,5 +19870,140 @@
     "row": 30,
     "col": 74,
     "cell_idx": 3464
+  },
+  {
+    "thai": "สร้า",
+    "kanji": "蕨",
+    "ku": 47,
+    "ten": 47,
+    "row": 30,
+    "col": 75,
+    "cell_idx": 3465
+  },
+  {
+    "thai": "เซ",
+    "kanji": "椀",
+    "ku": 47,
+    "ten": 48,
+    "row": 30,
+    "col": 76,
+    "cell_idx": 3466
+  },
+  {
+    "thai": "ว่า",
+    "kanji": "湾",
+    "ku": 47,
+    "ten": 49,
+    "row": 30,
+    "col": 77,
+    "cell_idx": 3467
+  },
+  {
+    "thai": "เว",
+    "kanji": "碗",
+    "ku": 47,
+    "ten": 50,
+    "row": 30,
+    "col": 78,
+    "cell_idx": 3468
+  },
+  {
+    "thai": "ลา",
+    "kanji": "腕",
+    "ku": 47,
+    "ten": 51,
+    "row": 30,
+    "col": 79,
+    "cell_idx": 3469
+  },
+  {
+    "thai": "วัน",
+    "kanji": "弌",
+    "ku": 48,
+    "ten": 1,
+    "row": 31,
+    "col": 10,
+    "cell_idx": 3513
+  },
+  {
+    "thai": "เริ่",
+    "kanji": "丐",
+    "ku": 48,
+    "ten": 2,
+    "row": 31,
+    "col": 11,
+    "cell_idx": 3514
+  },
+  {
+    "thai": "เรี่",
+    "kanji": "丕",
+    "ku": 48,
+    "ten": 3,
+    "row": 31,
+    "col": 12,
+    "cell_idx": 3515
+  },
+  {
+    "thai": "เรื่",
+    "kanji": "个",
+    "ku": 48,
+    "ten": 4,
+    "row": 31,
+    "col": 13,
+    "cell_idx": 3516
+  },
+  {
+    "thai": "อง",
+    "kanji": "丱",
+    "ku": 48,
+    "ten": 5,
+    "row": 31,
+    "col": 14,
+    "cell_idx": 3517
+  },
+  {
+    "thai": "ชื่อ",
+    "kanji": "丶",
+    "ku": 48,
+    "ten": 6,
+    "row": 31,
+    "col": 15,
+    "cell_idx": 3518
+  },
+  {
+    "thai": "ตัว",
+    "kanji": "丼",
+    "ku": 48,
+    "ten": 7,
+    "row": 31,
+    "col": 16,
+    "cell_idx": 3519
+  },
+  {
+    "thai": "ละ",
+    "kanji": "丿",
+    "ku": 48,
+    "ten": 8,
+    "row": 31,
+    "col": 17,
+    "cell_idx": 3520
+  },
+  {
+    "thai": "คร",
+    "kanji": "乂",
+    "ku": 48,
+    "ten": 9,
+    "row": 31,
+    "col": 18,
+    "cell_idx": 3521
+  },
+  {
+    "thai": "หลัก",
+    "kanji": "乖",
+    "ku": 48,
+    "ten": 10,
+    "row": 31,
+    "col": 19,
+    "cell_idx": 3522
   }
 ]

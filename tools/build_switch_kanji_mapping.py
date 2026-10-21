@@ -44,19 +44,46 @@ def main():
     switch_mapping = {}
     cluster_slots = []
 
-    # เริ่มที่ Ku 24 Ten 01
-    START_KU = 24
-    START_TEN = 1
-    start_offset = (START_KU - 16) * 94 + (START_TEN - 1)
+    SMART_SYLLABLES = [
+        'สร้า', 'เซ', 'ว่า', 'เว', 'ลา', 'วัน', 'เริ่', 'เรี่', 'เรื่', 'อง', 'ชื่อ', 'ตัว', 'ละ', 'คร', 'หลัก'
+    ]
+    all_clusters = list(user_map.keys())
+    for s in SMART_SYLLABLES:
+        if s not in all_clusters:
+            all_clusters.append(s)
 
-    print(f"[*] 2. แมปคลัสเตอร์ 2,208 ตัวเข้ากับรหัสคันจิแท้ (เริ่ม Ku {START_KU} Ten {START_TEN})...")
-    for i, cluster in enumerate(user_map.keys()):
-        cur_offset = start_offset + i
-        ku = 16 + cur_offset // 94
-        ten = 1 + cur_offset % 94
-        kanji_ch = jis_to_sjis_char(ku, ten)
-        r, c, cell_idx = jis_to_cell(ku, ten)
-        
+    def get_valid_kanji_slots(start_ku=24, count=2500):
+        slots = []
+        ku = start_ku
+        ten = 1
+        while len(slots) < count:
+            if ku == 47 and ten > 51:
+                ku = 48
+                ten = 1
+            b1 = ((ku - 1) >> 1) + (0x81 if ku <= 62 else 0xc1)
+            if ku % 2 == 1:
+                b2 = ten + 0x3f + (1 if ten > 63 else 0)
+            else:
+                b2 = ten + 0x9e
+            try:
+                ch = bytes([b1, b2]).decode('shift-jis')
+                offset = (ku - 16) * 94 + (ten - 1)
+                idx = 505 + offset
+                r = idx // 113
+                c = idx % 113
+                slots.append((ch, ku, ten, r, c, idx))
+            except UnicodeDecodeError:
+                pass
+            ten += 1
+            if ten > 94:
+                ku += 1
+                ten = 1
+        return slots
+
+    valid_slots = get_valid_kanji_slots(start_ku=24, count=len(all_clusters))
+    print(f"[*] 2. แมปคลัสเตอร์และพยางค์อัจฉริยะ {len(all_clusters):,} ตัวเข้ากับรหัสคันจิแท้...")
+    for i, cluster in enumerate(all_clusters):
+        kanji_ch, ku, ten, r, c, cell_idx = valid_slots[i]
         switch_mapping[cluster] = kanji_ch
         cluster_slots.append({
             'thai': cluster,

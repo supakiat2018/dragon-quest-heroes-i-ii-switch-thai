@@ -66,7 +66,64 @@ def get_glyph_crop(ch, font):
         return None
     return t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
 
+SMART_ALIGN = {
+    'สร้า': 'right',
+    'ง':    'left',
+    'เซ':   'right',
+    'ฟ':    'left',
+    'ล':    'right',
+    'บ':    'left',
+    'ว่า':  'right',
+    'เว':   'right',
+    'ลา':   'left',
+    'วัน':  'right',
+    'ที่':  'left',
+    'เริ่': 'right',
+    'เรี่': 'right',
+    'ม':    'left',
+    'เรื่': 'right',
+    'อง':   'left',
+    'ชื่อ': 'right',
+    'ตัว':  'left',
+    'ละ':   'right',
+    'คร':   'left',
+    'หลัก': 'center',
+    'เ':    'right',
+    'แ':    'right',
+    'โ':    'right',
+    'ใ':    'right',
+    'ไ':    'right',
+    'ะ':    'left',
+    'า':    'left',
+    'ำ':    'left',
+}
+
+def render_token_smart(tok, align='center'):
+    t = Image.new('RGBA', (100, 100), (0, 0, 0, 0))
+    tdraw = ImageDraw.Draw(t)
+    tdraw.text((50, 65), tok, font=f_base, fill=(255, 255, 255, 255), anchor='ms')
+    arr = np.array(t)[:, :, 3]
+    coords = np.argwhere(arr > 20)
+    if len(coords) == 0:
+        return Image.new('RGBA', (36, 36), (0, 0, 0, 0))
+    cr = t.crop((coords[:, 1].min(), coords[:, 0].min(), coords[:, 1].max() + 1, coords[:, 0].max() + 1))
+    if cr.width > 34:
+        cr = cr.resize((34, cr.height), Image.Resampling.LANCZOS)
+    cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
+    if align == 'right':
+        cx = 36 - cr.width - 1
+    elif align == 'left':
+        cx = 1
+    else:
+        cx = (36 - cr.width) // 2
+    cy = (36 - cr.height) // 2 + 2
+    cell.paste(cr, (cx, cy), cr)
+    return cell
+
 def render_smart_cluster_opt_a(text, target_w=29):
+    if text in SMART_ALIGN:
+        return render_token_smart(text, SMART_ALIGN[text])
+
     if len(text) == 1:
         crop_b = get_glyph_crop(text, f_single)
         if not crop_b:
@@ -76,9 +133,9 @@ def render_smart_cluster_opt_a(text, target_w=29):
         scaled = crop_b.resize((w, h), Image.Resampling.LANCZOS)
         cell = Image.new('RGBA', (36, 36), (0, 0, 0, 0))
         if text in ['เ', 'แ', 'โ', 'ใ', 'ไ']:
-            cx = 36 - w - 2
+            cx = 36 - w - 1
         elif text in ['ะ', 'า', 'ำ']:
-            cx = 2
+            cx = 1
         else:
             cx = (36 - w) // 2
         cy = 31 - h
