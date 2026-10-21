@@ -141,11 +141,11 @@ def render_tuned_single_glyph(ch, config, baseline=32):
     if ch in UPPER_MARKS:
         default_ox, default_oy, default_w, default_h = 0, -3, 15, 6
     elif ch == 'เ':
-        default_ox, default_oy, default_w, default_h = 14, 0, 10, 19
+        default_ox, default_oy, default_w, default_h = 14, 1, 10, 19
     elif ch == 'แ':
-        default_ox, default_oy, default_w, default_h = 9, 0, 18, 19
+        default_ox, default_oy, default_w, default_h = 14, 1, 18, 19
     elif ch in 'โใไ':
-        default_ox, default_oy, default_w, default_h = 11, 0, 14, 26
+        default_ox, default_oy, default_w, default_h = 14, 1, 14, 26
     elif ch in 'าะ':
         default_ox, default_oy, default_w, default_h = -7, 0, 14, 19
     elif ch == 'ำ':
@@ -421,7 +421,7 @@ class ThaiFontMasterStudio(tk.Tk):
         tk.Label(slider_box, text="↔ ขยับ ซ้าย - ขวา (Offset X):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(6, 0))
         fx = tk.Frame(slider_box, bg="#1f2636")
         fx.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_ox = tk.Scale(fx, from_=-14, to=14, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
+        self.pua_sl_ox = tk.Scale(fx, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
         self.pua_sl_ox.pack(side=tk.LEFT)
         self.lbl_pua_ox = tk.Label(fx, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
         self.lbl_pua_ox.pack(side=tk.LEFT, padx=5)
@@ -429,7 +429,7 @@ class ThaiFontMasterStudio(tk.Tk):
         tk.Label(slider_box, text="↕ ขยับ ขึ้น - ลง (Offset Y / ระดับสระ):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(4, 0))
         fy = tk.Frame(slider_box, bg="#1f2636")
         fy.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_oy = tk.Scale(fy, from_=-14, to=14, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
+        self.pua_sl_oy = tk.Scale(fy, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
         self.pua_sl_oy.pack(side=tk.LEFT)
         self.lbl_pua_oy = tk.Label(fy, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
         self.lbl_pua_oy.pack(side=tk.LEFT, padx=5)
@@ -847,11 +847,11 @@ class ThaiFontMasterStudio(tk.Tk):
             'ร้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 15, 'height': 19}, '้': {'offset_x': 0, 'offset_y': 0, 'width': 9, 'height': 9}}},
             'า': {'offset_x': -7, 'offset_y': 0, 'width': 14, 'height': 19},
             'ง': {'offset_x': 0, 'offset_y': 0, 'width': 16, 'height': 19},
-            'เ': {'offset_x': 14, 'offset_y': 0, 'width': 10, 'height': 19},
-            'แ': {'offset_x': 9, 'offset_y': 0, 'width': 18, 'height': 19},
-            'โ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
-            'ใ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
-            'ไ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
+            'เ': {'offset_x': 14, 'offset_y': 1, 'width': 10, 'height': 19},
+            'แ': {'offset_x': 14, 'offset_y': 1, 'width': 18, 'height': 19},
+            'โ': {'offset_x': 14, 'offset_y': 1, 'width': 14, 'height': 26},
+            'ใ': {'offset_x': 14, 'offset_y': 1, 'width': 14, 'height': 26},
+            'ไ': {'offset_x': 14, 'offset_y': 1, 'width': 14, 'height': 26},
             'ซ': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19},
             'ฟ': {'offset_x': 0, 'offset_y': 0, 'width': 19, 'height': 25},
             'ล': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19},
@@ -971,7 +971,7 @@ class ThaiFontMasterStudio(tk.Tk):
         tk.Label(p_grp, text="↔ ขยับ ซ้าย - ขวา (Offset X):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(6, 0))
         fx = tk.Frame(p_grp, bg="#1f2636")
         fx.pack(fill=tk.X, padx=10, pady=2)
-        self.sl_s_ox = tk.Scale(fx, from_=-14, to=14, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_single_param_change)
+        self.sl_s_ox = tk.Scale(fx, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_single_param_change)
         self.sl_s_ox.pack(side=tk.LEFT)
         self.lbl_s_ox = tk.Label(fx, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
         self.lbl_s_ox.pack(side=tk.LEFT, padx=5)
@@ -979,7 +979,7 @@ class ThaiFontMasterStudio(tk.Tk):
         tk.Label(p_grp, text="↕ ขยับ ขึ้น - ลง (Offset Y):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(4, 0))
         fy = tk.Frame(p_grp, bg="#1f2636")
         fy.pack(fill=tk.X, padx=10, pady=2)
-        self.sl_s_oy = tk.Scale(fy, from_=-14, to=14, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_single_param_change)
+        self.sl_s_oy = tk.Scale(fy, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_single_param_change)
         self.sl_s_oy.pack(side=tk.LEFT)
         self.lbl_s_oy = tk.Label(fy, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
         self.lbl_s_oy.pack(side=tk.LEFT, padx=5)
