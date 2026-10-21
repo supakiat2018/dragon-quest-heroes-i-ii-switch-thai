@@ -141,11 +141,11 @@ def render_tuned_single_glyph(ch, config, baseline=32):
     if ch in UPPER_MARKS:
         default_ox, default_oy, default_w, default_h = 0, -3, 15, 6
     elif ch == 'เ':
-        default_ox, default_oy, default_w, default_h = 7, 0, 10, 19
+        default_ox, default_oy, default_w, default_h = 14, 0, 10, 19
     elif ch == 'แ':
-        default_ox, default_oy, default_w, default_h = 6, 0, 18, 19
+        default_ox, default_oy, default_w, default_h = 9, 0, 18, 19
     elif ch in 'โใไ':
-        default_ox, default_oy, default_w, default_h = -2, 0, 14, 26
+        default_ox, default_oy, default_w, default_h = 11, 0, 14, 26
     elif ch in 'าะ':
         default_ox, default_oy, default_w, default_h = -7, 0, 14, 19
     elif ch == 'ำ':
@@ -239,8 +239,8 @@ def compose_pua_cluster_image(cluster_text, config, highlight_part=None, baselin
         if lead_ch:
             pos_x_b = x_base_start + ox
         else:
-            pos_x_b = (36 - w_b) // 2 + whole_ox + ox
-        pos_y_b = baseline - h_b + oy
+            pos_x_b = max(0, min(36 - w_b, (36 - w_b) // 2 + whole_ox + ox))
+        pos_y_b = max(0, min(36 - h_b, baseline - h_b + oy))
         cell.paste(sc_b, (pos_x_b, pos_y_b), sc_b)
         layer_bounds[base_ch] = (pos_x_b, pos_y_b, w_b, h_b)
     else:
@@ -771,8 +771,11 @@ class ThaiFontMasterStudio(tk.Tk):
             'ร้': {'whole_ox': 0, 'whole_oy': 0, 'layers': {'ร': {'offset_x': 0, 'offset_y': 0, 'width': 15, 'height': 19}, '้': {'offset_x': 0, 'offset_y': 0, 'width': 9, 'height': 9}}},
             'า': {'offset_x': -7, 'offset_y': 0, 'width': 14, 'height': 19},
             'ง': {'offset_x': 0, 'offset_y': 0, 'width': 16, 'height': 19},
-            'เ': {'offset_x': 7, 'offset_y': 0, 'width': 10, 'height': 19},
-            'แ': {'offset_x': 6, 'offset_y': 0, 'width': 18, 'height': 19},
+            'เ': {'offset_x': 14, 'offset_y': 0, 'width': 10, 'height': 19},
+            'แ': {'offset_x': 9, 'offset_y': 0, 'width': 18, 'height': 19},
+            'โ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
+            'ใ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
+            'ไ': {'offset_x': 11, 'offset_y': 0, 'width': 14, 'height': 26},
             'ซ': {'offset_x': 0, 'offset_y': 0, 'width': 18, 'height': 19},
             'ฟ': {'offset_x': 0, 'offset_y': 0, 'width': 19, 'height': 25},
             'ล': {'offset_x': 0, 'offset_y': 0, 'width': 17, 'height': 19},
