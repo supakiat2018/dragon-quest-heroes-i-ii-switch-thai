@@ -300,8 +300,8 @@ class ThaiFontMasterStudio(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Dragon Quest Heroes II - สตูดิโอปรับแต่งฟอนต์ไทย PUA แบบแยกเลเยอร์อิสระ")
-        self.geometry("1240x860")
-        self.minsize(1000, 720)
+        self.geometry("1120x640")
+        self.minsize(960, 500)
         self.configure(bg="#161a24")
         
         self.config_data = load_or_create_config()
@@ -367,6 +367,19 @@ class ThaiFontMasterStudio(tk.Tk):
                         'offset_x': 0, 'offset_y': 0,
                         'width': nw, 'height': nh
                     }
+        # Permanent lock for leading vowels: เ, แ, โ, ใ, ไ (Offset X = +18, Offset Y = +1)
+        if 'glyphs' not in self.config_data:
+            self.config_data['glyphs'] = {}
+        for lv in 'เแโใไ':
+            if lv not in self.config_data['glyphs']:
+                self.config_data['glyphs'][lv] = {
+                    'offset_x': 18, 'offset_y': 1,
+                    'width': 18 if lv == 'แ' else (14 if lv in 'โใไ' else 10),
+                    'height': 26 if lv in 'โใไ' else 19
+                }
+            elif self.config_data['glyphs'][lv].get('offset_x', 0) == 0:
+                self.config_data['glyphs'][lv]['offset_x'] = 18
+                self.config_data['glyphs'][lv]['offset_y'] = 1
                     
     # ================= TAB 1: PUA CLUSTER COMPOSER =================
     def setup_tab_pua(self):
@@ -396,75 +409,94 @@ class ThaiFontMasterStudio(tk.Tk):
         work = tk.Frame(self.tab_pua, bg="#161a24")
         work.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-        # Left Panel: Sub-layer selectors and sliders
-        left_f = tk.LabelFrame(work, text=" แผงปรับแต่งชิ้นส่วนย่อย (Layer Parts) ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold'), bd=1)
-        left_f.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5, ipadx=10, ipady=5)
+        # Left Panel: Sub-layer selectors, Action Toolbar, and compact Sliders
+        left_f = tk.LabelFrame(work, text=" แผงปรับแต่งชิ้นส่วนย่อย (Layer Parts) ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 10, 'bold'), bd=1)
+        left_f.pack(side=tk.LEFT, fill=tk.BOTH, padx=(0, 10), pady=2, ipadx=6, ipady=4)
         
-        self.lbl_pua_cluster_title = tk.Label(left_f, text="คลัสเตอร์: [ ริ่ ]", bg="#121622", fg="#fde047", font=('Segoe UI', 14, 'bold'), relief=tk.RIDGE, bd=2)
-        self.lbl_pua_cluster_title.pack(fill=tk.X, padx=10, pady=8, ipady=4)
+        self.lbl_pua_cluster_title = tk.Label(left_f, text="เป้าหมาย: [ ริ่ ]", bg="#121622", fg="#fde047", font=('Segoe UI', 11, 'bold'), relief=tk.RIDGE, bd=1)
+        self.lbl_pua_cluster_title.pack(fill=tk.X, padx=6, pady=(3, 3), ipady=2)
         
         # Sub-layer Buttons
-        tk.Label(left_f, text="1. เลือกชิ้นส่วนที่ต้องการขยับ/ปรับขนาด:", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 10, 'bold')).pack(anchor=tk.W, padx=10, pady=(6, 4))
+        tk.Label(left_f, text="1. เลือกชิ้นส่วนที่ต้องการขยับ/ปรับขนาด:", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold')).pack(anchor=tk.W, padx=6, pady=(2, 1))
         self.layer_btn_frame = tk.Frame(left_f, bg="#1f2636")
-        self.layer_btn_frame.pack(fill=tk.X, padx=10, pady=2)
+        self.layer_btn_frame.pack(fill=tk.X, padx=6, pady=1)
         self.layer_buttons = {}
         
-        self.lbl_active_layer = tk.Label(left_f, text="กำลังปรับ: [ รวมทั้งก้อน ]", bg="#2a354c", fg="#a7f3d0", font=('Segoe UI', 10, 'bold'), relief=tk.GROOVE)
-        self.lbl_active_layer.pack(fill=tk.X, padx=10, pady=(6, 10), ipady=3)
+        self.lbl_active_layer = tk.Label(left_f, text="กำลังปรับ: [ รวมทั้งก้อน ]", bg="#2a354c", fg="#a7f3d0", font=('Segoe UI', 9, 'bold'), relief=tk.GROOVE)
+        self.lbl_active_layer.pack(fill=tk.X, padx=6, pady=(2, 5), ipady=2)
         
-        # Sliders Frame
-        slider_box = tk.LabelFrame(left_f, text=" ตำแหน่งและขนาดของชิ้นส่วนนี้ ", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 10, 'bold'), bd=1)
-        slider_box.pack(fill=tk.X, padx=10, pady=4)
-        
-        tk.Label(slider_box, text="↔ ขยับ ซ้าย - ขวา (Offset X):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(6, 0))
-        fx = tk.Frame(slider_box, bg="#1f2636")
-        fx.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_ox = tk.Scale(fx, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
-        self.pua_sl_ox.pack(side=tk.LEFT)
-        self.lbl_pua_ox = tk.Label(fx, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
-        self.lbl_pua_ox.pack(side=tk.LEFT, padx=5)
-        
-        tk.Label(slider_box, text="↕ ขยับ ขึ้น - ลง (Offset Y / ระดับสระ):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(4, 0))
-        fy = tk.Frame(slider_box, bg="#1f2636")
-        fy.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_oy = tk.Scale(fy, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
-        self.pua_sl_oy.pack(side=tk.LEFT)
-        self.lbl_pua_oy = tk.Label(fy, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 9, 'bold'), width=5)
-        self.lbl_pua_oy.pack(side=tk.LEFT, padx=5)
-        
-        tk.Label(slider_box, text="↔ ความกว้าง / ความอ้วน (Width):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(4, 0))
-        fw = tk.Frame(slider_box, bg="#1f2636")
-        fw.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_w = tk.Scale(fw, from_=4, to=36, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
-        self.pua_sl_w.pack(side=tk.LEFT)
-        self.lbl_pua_w = tk.Label(fw, text="18 px", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 9, 'bold'), width=5)
-        self.lbl_pua_w.pack(side=tk.LEFT, padx=5)
-        
-        tk.Label(slider_box, text="↕ ความสูง (Height):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 9)).pack(anchor=tk.W, padx=10, pady=(4, 0))
-        fh = tk.Frame(slider_box, bg="#1f2636")
-        fh.pack(fill=tk.X, padx=10, pady=2)
-        self.pua_sl_h = tk.Scale(fh, from_=4, to=36, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=180, command=self.on_pua_slider_change)
-        self.pua_sl_h.pack(side=tk.LEFT)
-        self.lbl_pua_h = tk.Label(fh, text="18 px", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 9, 'bold'), width=5)
-        self.lbl_pua_h.pack(side=tk.LEFT, padx=5)
-        
-        # Action Buttons (2 compact rows to prevent any vertical overflow)
-        act_box = tk.Frame(left_f, bg="#1f2636")
-        act_box.pack(fill=tk.X, padx=8, pady=(8, 4))
+        # Action Toolbar (PROMINENT AT TOP: Guaranteed 100% visible, cannot be pushed off-screen!)
+        act_box = tk.LabelFrame(left_f, text=" ⚡ คำสั่งหลัก (Action Toolbar) ", bg="#1f2636", fg="#c084fc", font=('Segoe UI', 9, 'bold'), bd=1)
+        act_box.pack(fill=tk.X, padx=6, pady=(0, 5), ipadx=4, ipady=3)
         
         row_act1 = tk.Frame(act_box, bg="#1f2636")
         row_act1.pack(fill=tk.X, pady=2)
-        tk.Button(row_act1, text="⚡ จัดตัวชิดสวยงาม (Auto Tight)", bg="#8b5cf6", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.apply_auto_tight_spacing, pady=5).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
-        tk.Button(row_act1, text="💾 บันทึกค่า (Save)", bg="#10b981", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.save_pua_config, pady=5).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
+        self.btn_auto_tight = tk.Button(row_act1, text="⚡ จัดตัวชิดสวยงาม (Auto Tight)", bg="#7c3aed", fg="#ffffff", activebackground="#6d28d9", font=('Segoe UI', 9, 'bold'),
+                                        relief=tk.RAISED, bd=2, cursor="hand2", command=self.apply_auto_tight_spacing, pady=5)
+        self.btn_auto_tight.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
+        self.btn_save = tk.Button(row_act1, text="💾 บันทึกค่า (Save)", bg="#059669", fg="#ffffff", activebackground="#047857", font=('Segoe UI', 9, 'bold'),
+                                  relief=tk.RAISED, bd=2, cursor="hand2", command=self.save_pua_config, pady=5)
+        self.btn_save.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
                   
         row_act2 = tk.Frame(act_box, bg="#1f2636")
         row_act2.pack(fill=tk.X, pady=2)
         tk.Button(row_act2, text="🔄 คืนค่า (Reset)", bg="#374151", fg="#d1d5db", font=('Segoe UI', 9),
-                  relief=tk.FLAT, cursor="hand2", command=self.reset_current_layer, pady=4).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
+                  relief=tk.FLAT, cursor="hand2", command=self.reset_current_layer, pady=3).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
         tk.Button(row_act2, text="🚀 ติดตั้ง RomFS (Deploy)", bg="#2563eb", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.deploy_to_mod, pady=4).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
+                  relief=tk.FLAT, cursor="hand2", command=self.deploy_to_mod, pady=3).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
+        
+        # Sliders Frame (Ultra Compact 2x2 Grid Layout)
+        slider_box = tk.LabelFrame(left_f, text=" ตำแหน่งและขนาดของชิ้นส่วน (2x2 Grid) ", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 9, 'bold'), bd=1)
+        slider_box.pack(fill=tk.X, padx=6, pady=2, ipadx=4, ipady=3)
+        
+        f_grid = tk.Frame(slider_box, bg="#1f2636")
+        f_grid.pack(fill=tk.X, padx=2, pady=2)
+        f_grid.columnconfigure(0, weight=1)
+        f_grid.columnconfigure(1, weight=1)
+        
+        # Row 0, Col 0: Offset X
+        c00 = tk.Frame(f_grid, bg="#1f2636")
+        c00.grid(row=0, column=0, sticky="ew", padx=3, pady=2)
+        tk.Label(c00, text="↔ เลื่อน X (ซ้าย-ขวา):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 8, 'bold')).pack(anchor=tk.W)
+        fx_in = tk.Frame(c00, bg="#1f2636")
+        fx_in.pack(fill=tk.X)
+        self.pua_sl_ox = tk.Scale(fx_in, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=110, command=self.on_pua_slider_change)
+        self.pua_sl_ox.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.lbl_pua_ox = tk.Label(fx_in, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 8, 'bold'), width=5)
+        self.lbl_pua_ox.pack(side=tk.LEFT)
+        
+        # Row 0, Col 1: Width
+        c01 = tk.Frame(f_grid, bg="#1f2636")
+        c01.grid(row=0, column=1, sticky="ew", padx=3, pady=2)
+        tk.Label(c01, text="↔ ความกว้าง (W):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 8, 'bold')).pack(anchor=tk.W)
+        fw_in = tk.Frame(c01, bg="#1f2636")
+        fw_in.pack(fill=tk.X)
+        self.pua_sl_w = tk.Scale(fw_in, from_=4, to=36, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=110, command=self.on_pua_slider_change)
+        self.pua_sl_w.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.lbl_pua_w = tk.Label(fw_in, text="18 px", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 8, 'bold'), width=5)
+        self.lbl_pua_w.pack(side=tk.LEFT)
+        
+        # Row 1, Col 0: Offset Y
+        c10 = tk.Frame(f_grid, bg="#1f2636")
+        c10.grid(row=1, column=0, sticky="ew", padx=3, pady=2)
+        tk.Label(c10, text="↕ เลื่อน Y (ขึ้น-ลง):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 8, 'bold')).pack(anchor=tk.W)
+        fy_in = tk.Frame(c10, bg="#1f2636")
+        fy_in.pack(fill=tk.X)
+        self.pua_sl_oy = tk.Scale(fy_in, from_=-18, to=18, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=110, command=self.on_pua_slider_change)
+        self.pua_sl_oy.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.lbl_pua_oy = tk.Label(fy_in, text="0 px", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 8, 'bold'), width=5)
+        self.lbl_pua_oy.pack(side=tk.LEFT)
+        
+        # Row 1, Col 1: Height
+        c11 = tk.Frame(f_grid, bg="#1f2636")
+        c11.grid(row=1, column=1, sticky="ew", padx=3, pady=2)
+        tk.Label(c11, text="↕ ความสูง (H):", bg="#1f2636", fg="#cbd5e1", font=('Segoe UI', 8, 'bold')).pack(anchor=tk.W)
+        fh_in = tk.Frame(c11, bg="#1f2636")
+        fh_in.pack(fill=tk.X)
+        self.pua_sl_h = tk.Scale(fh_in, from_=4, to=36, orient=tk.HORIZONTAL, bg="#1f2636", fg="#ffffff", highlightthickness=0, length=110, command=self.on_pua_slider_change)
+        self.pua_sl_h.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.lbl_pua_h = tk.Label(fh_in, text="18 px", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 8, 'bold'), width=5)
+        self.lbl_pua_h.pack(side=tk.LEFT)
                   
         # Right Previews
         right_f = tk.Frame(work, bg="#161a24")
@@ -473,7 +505,7 @@ class ThaiFontMasterStudio(tk.Tk):
         zoom_frame = tk.LabelFrame(right_f, text=" พรีวิวคลัสเตอร์ PUA ซูมขยายใหญ่ 8x (แสดงผลสดตามสไลเดอร์) ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold'), bd=1)
         zoom_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
         
-        self.canvas_pua_zoom = tk.Canvas(zoom_frame, bg="#0d1117", highlightthickness=0, width=320, height=320)
+        self.canvas_pua_zoom = tk.Canvas(zoom_frame, bg="#0d1117", highlightthickness=0, width=288, height=288)
         self.canvas_pua_zoom.pack(side=tk.LEFT, padx=15, pady=10)
         
         pua_info_f = tk.Frame(zoom_frame, bg="#1f2636")
@@ -488,7 +520,7 @@ class ThaiFontMasterStudio(tk.Tk):
         sentence_frame = tk.LabelFrame(right_f, text=" พรีวิวในปุ่มเมนูเกมจริง (Real-Time In-Game Buttons) ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold'), bd=1)
         sentence_frame.pack(fill=tk.X, pady=(6, 0))
         
-        self.canvas_pua_sentence = tk.Canvas(sentence_frame, bg="#121622", highlightthickness=0, height=95)
+        self.canvas_pua_sentence = tk.Canvas(sentence_frame, bg="#121622", highlightthickness=0, height=80)
         self.canvas_pua_sentence.pack(fill=tk.X, padx=10, pady=10)
         
         self.select_pua_cluster("ริ่")
@@ -504,59 +536,114 @@ class ThaiFontMasterStudio(tk.Tk):
     def select_pua_cluster(self, c_text, sync_entry=True):
         if not c_text:
             return
-        # If user clicked a preset cluster like ริ่, reset custom preview so 3 menus show
         if sync_entry:
             self.custom_preview_text = ""
             self.entry_custom_cluster.delete(0, tk.END)
             self.entry_custom_cluster.insert(0, c_text)
             
-        self.current_cluster = c_text
-        self.lbl_pua_cluster_title.config(text=f"คำ / คลัสเตอร์: [ {c_text} ]")
+        LEAD_VOWELS = set('เแโใไ')
+        TRAIL_VOWELS = set('ะาำฤฦๅ')
         
-        # Ensure config has entry if single cluster
-        if len(c_text) <= 4 and c_text not in self.config_data['clusters']:
-            self.config_data['clusters'][c_text] = {
-                'whole_ox': 0, 'whole_oy': 0,
-                'layers': {}
-            }
-            for ch in c_text:
-                nw, nh = get_natural_glyph_metrics(ch)
-                self.config_data['clusters'][c_text]['layers'][ch] = {
-                    'offset_x': 0, 'offset_y': 0,
-                    'width': nw, 'height': nh
-                }
+        # Tokenize c_text into Thai structural tokens
+        tokens = []
+        i = 0
+        n = len(c_text)
+        while i < n:
+            ch = c_text[i]
+            if ch in LEAD_VOWELS:
+                tokens.append(('lead_vowel', ch))
+                i += 1
+            elif ch in TRAIL_VOWELS:
+                tokens.append(('trail_vowel', ch))
+                i += 1
+            elif ch in UPPER_MARKS or ch in LOWER_MARKS or ch in TONE_MARKS:
+                tokens.append(('mark', ch))
+                i += 1
+            elif ch in (' ', '   '):
+                i += 1
+            else:
+                combo = ch
+                j = i + 1
+                while j < n and (c_text[j] in UPPER_MARKS or c_text[j] in LOWER_MARKS or c_text[j] in TONE_MARKS):
+                    combo += c_text[j]
+                    j += 1
+                if len(combo) > 1:
+                    tokens.append(('cluster', combo))
+                else:
+                    tokens.append(('consonant', combo))
+                i = j
 
-        # Rebuild layer buttons dynamically for whatever user typed!
+        # Identify active cluster or character
+        cluster_tokens = [tok for t_type, tok in tokens if t_type == 'cluster']
+        if cluster_tokens:
+            self.current_cluster = cluster_tokens[0]
+        elif len(c_text) <= 3 and not any(t_type in ('lead_vowel', 'trail_vowel') for t_type, _ in tokens):
+            self.current_cluster = c_text
+        else:
+            self.current_cluster = tokens[0][1] if tokens else "ริ่"
+
+        if len(c_text) > 3 or any(t_type in ('lead_vowel', 'trail_vowel') for t_type, _ in tokens):
+            self.lbl_pua_cluster_title.config(text=f"เป้าหมาย: [ {self.current_cluster} ] (จากคำ: '{c_text}')")
+        else:
+            self.lbl_pua_cluster_title.config(text=f"คลัสเตอร์ PUA: [ {self.current_cluster} ]")
+        
+        # If current_cluster is a true vertical cluster, ensure default structure in config
+        if len(self.current_cluster) > 1:
+            if self.current_cluster not in self.config_data.get('clusters', {}):
+                self.config_data.setdefault('clusters', {})[self.current_cluster] = {
+                    'whole_ox': 0, 'whole_oy': 0,
+                    'layers': {}
+                }
+                for ch in self.current_cluster:
+                    nw, nh = get_natural_glyph_metrics(ch)
+                    self.config_data['clusters'][self.current_cluster]['layers'][ch] = {
+                        'offset_x': 0, 'offset_y': 0,
+                        'width': nw, 'height': nh
+                    }
+
+        # Rebuild layer buttons dynamically
         for w in self.layer_btn_frame.winfo_children():
             w.destroy()
             
         self.layer_buttons = {}
-        btn_whole = tk.Button(self.layer_btn_frame, text="รวมทั้งก้อน", font=('Segoe UI', 9, 'bold'), bg="#374151", fg="#ffffff",
-                              relief=tk.FLAT, cursor="hand2", command=lambda: self.select_pua_layer_part('whole'))
-        btn_whole.pack(side=tk.LEFT, padx=2, pady=2)
-        self.layer_buttons['whole'] = btn_whole
         
-        # Add a button for each unique character/part in c_text
+        # If active target is a cluster (length > 1), show 'whole' button
+        if len(self.current_cluster) > 1:
+            btn_whole = tk.Button(self.layer_btn_frame, text=f"รวมทั้งก้อน [{self.current_cluster}]", font=('Segoe UI', 9, 'bold'), bg="#374151", fg="#ffffff",
+                                  relief=tk.FLAT, cursor="hand2", command=lambda: self.select_pua_layer_part('whole'))
+            btn_whole.pack(side=tk.LEFT, padx=2, pady=1)
+            self.layer_buttons['whole'] = btn_whole
+
         added_parts = set()
-        for ch in c_text:
-            if ch in (' ', '   ') or ch in added_parts:
+        default_part_to_select = 'whole' if len(self.current_cluster) > 1 else None
+        
+        for t_type, tok in tokens:
+            if tok in added_parts:
                 continue
-            added_parts.add(ch)
-            label_desc = f"'{ch}'"
-            if ch in 'เแโใไ': label_desc = f"สระ '{ch}'"
-            elif ch in UPPER_MARKS: label_desc = f"สระบน '{ch}'"
-            elif ch in TONE_MARKS: label_desc = f"วรรณยุกต์ '{ch}'"
-            elif ch in LOWER_MARKS: label_desc = f"สระล่าง '{ch}'"
-            else: label_desc = f"พยัญชนะ '{ch}'"
+            added_parts.add(tok)
             
-            b = tk.Button(self.layer_btn_frame, text=label_desc, font=('Segoe UI', 9, 'bold'), bg="#2b354c", fg="#cbd5e1",
-                          relief=tk.FLAT, cursor="hand2", command=lambda p=ch: self.select_pua_layer_part(p))
-            b.pack(side=tk.LEFT, padx=2, pady=2)
-            self.layer_buttons[ch] = b
-            
-        # Select first character if available, else 'whole'
-        first_part = list(added_parts)[0] if added_parts else 'whole'
-        self.select_pua_layer_part(first_part)
+            if t_type == 'cluster':
+                for ch in tok:
+                    if ch in added_parts:
+                        continue
+                    added_parts.add(ch)
+                    desc = f"วรรณยุกต์ '{ch}'" if ch in TONE_MARKS else (f"สระบน '{ch}'" if ch in UPPER_MARKS else f"พยัญชนะ '{ch}'")
+                    b = tk.Button(self.layer_btn_frame, text=desc, font=('Segoe UI', 9, 'bold'), bg="#2b354c", fg="#cbd5e1",
+                                  relief=tk.FLAT, cursor="hand2", command=lambda p=ch: self.select_pua_layer_part(p))
+                    b.pack(side=tk.LEFT, padx=2, pady=1)
+                    self.layer_buttons[ch] = b
+            else:
+                desc = f"สระ '{tok}'" if t_type == 'lead_vowel' else (f"สระตาม '{tok}'" if t_type == 'trail_vowel' else f"พยัญชนะ '{tok}'")
+                b = tk.Button(self.layer_btn_frame, text=desc, font=('Segoe UI', 9, 'bold'), bg="#2b354c", fg="#cbd5e1",
+                              relief=tk.FLAT, cursor="hand2", command=lambda p=tok: self.select_pua_layer_part(p))
+                b.pack(side=tk.LEFT, padx=2, pady=1)
+                self.layer_buttons[tok] = b
+                if default_part_to_select is None:
+                    default_part_to_select = tok
+
+        if default_part_to_select is None:
+            default_part_to_select = 'whole'
+        self.select_pua_layer_part(default_part_to_select)
         
     def select_pua_layer_part(self, part):
         self.current_layer_part = part
@@ -832,11 +919,6 @@ class ThaiFontMasterStudio(tk.Tk):
                 self.config_data.setdefault('clusters', {})[k] = v
             else:
                 self.config_data.setdefault('glyphs', {})[k] = v
-                self.config_data.setdefault('clusters', {})[k] = {
-                    'whole_ox': v.get('offset_x', 0),
-                    'whole_oy': v.get('offset_y', 0),
-                    'layers': {k: v}
-                }
         save_config(self.config_data)
         self.select_pua_cluster(self.current_cluster)
         self.update_pua_displays()
@@ -844,6 +926,11 @@ class ThaiFontMasterStudio(tk.Tk):
         messagebox.showinfo("จัดตัวชิดเรียบร้อย", "นำเข้าการตั้งค่า 'ตัวชิดสวยงาม' เรียบร้อยแล้ว!\nช่องว่างระหว่างตัวอักษรลดลงเหลือเพียง 2-4px แนบชิดสนิท สวยงามระดับฟอนต์ภาษาอังกฤษ")
         
     def save_pua_config(self):
+        # Clean up any single-character or full word keys mistakenly saved under clusters
+        if 'clusters' in self.config_data:
+            to_del = [k for k in list(self.config_data['clusters'].keys()) if len(k) <= 1 or any(c in 'เแโใไ' for c in k)]
+            for k in to_del:
+                del self.config_data['clusters'][k]
         save_config(self.config_data)
         messagebox.showinfo("บันทึกสำเร็จ", f"บันทึกค่าการปรับแต่งคลัสเตอร์ PUA '{self.current_cluster}' เรียบร้อยแล้ว!\n\nไฟล์: {CONFIG_JSON}\n\nคุณสามารถกดปุ่ม 'ติดตั้งเข้า Mod เกมจริง' เพื่อนำไปใช้ในเกมได้ทันทีครับ!")
         
@@ -980,7 +1067,7 @@ class ThaiFontMasterStudio(tk.Tk):
         
         zoom_s = tk.LabelFrame(right_s, text=" ซูม 8x ตัวอักษรเดี่ยว ", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold'), bd=1)
         zoom_s.pack(fill=tk.BOTH, expand=True)
-        self.canvas_single_zoom = tk.Canvas(zoom_s, bg="#0d1117", highlightthickness=0, width=320, height=320)
+        self.canvas_single_zoom = tk.Canvas(zoom_s, bg="#0d1117", highlightthickness=0, width=288, height=288)
         self.canvas_single_zoom.pack(side=tk.LEFT, padx=15, pady=10)
         
         self.cur_single_char = 'ก'
