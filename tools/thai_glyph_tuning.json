@@ -385,7 +385,7 @@
       "natural_h": 27
     },
     "เ": {
-      "offset_x": 14,
+      "offset_x": 18,
       "offset_y": 1,
       "width": 10,
       "height": 19,
@@ -393,7 +393,7 @@
       "natural_h": 19
     },
     "แ": {
-      "offset_x": 14,
+      "offset_x": 18,
       "offset_y": 1,
       "width": 18,
       "height": 19,
@@ -401,7 +401,7 @@
       "natural_h": 19
     },
     "โ": {
-      "offset_x": 14,
+      "offset_x": 18,
       "offset_y": 1,
       "width": 14,
       "height": 26,
@@ -409,7 +409,7 @@
       "natural_h": 26
     },
     "ใ": {
-      "offset_x": 14,
+      "offset_x": 18,
       "offset_y": 1,
       "width": 14,
       "height": 26,
@@ -417,7 +417,7 @@
       "natural_h": 26
     },
     "ไ": {
-      "offset_x": 14,
+      "offset_x": 18,
       "offset_y": 1,
       "width": 14,
       "height": 26,
@@ -729,66 +729,6 @@
           "offset_y": 0,
           "width": 9,
           "height": 9
-        }
-      }
-    },
-    "เ": {
-      "whole_ox": 14,
-      "whole_oy": 1,
-      "layers": {
-        "เ": {
-          "offset_x": 0,
-          "offset_y": 0,
-          "width": 10,
-          "height": 19
-        }
-      }
-    },
-    "แ": {
-      "whole_ox": 14,
-      "whole_oy": 1,
-      "layers": {
-        "แ": {
-          "offset_x": 0,
-          "offset_y": 0,
-          "width": 18,
-          "height": 19
-        }
-      }
-    },
-    "โ": {
-      "whole_ox": 14,
-      "whole_oy": 1,
-      "layers": {
-        "โ": {
-          "offset_x": 0,
-          "offset_y": 0,
-          "width": 14,
-          "height": 26
-        }
-      }
-    },
-    "ใ": {
-      "whole_ox": 14,
-      "whole_oy": 1,
-      "layers": {
-        "ใ": {
-          "offset_x": 0,
-          "offset_y": 0,
-          "width": 14,
-          "height": 26
-        }
-      }
-    },
-    "ไ": {
-      "whole_ox": 14,
-      "whole_oy": 1,
-      "layers": {
-        "ไ": {
-          "offset_x": 0,
-          "offset_y": 0,
-          "width": 14,
-          "height": 26
         }
       }
     }
