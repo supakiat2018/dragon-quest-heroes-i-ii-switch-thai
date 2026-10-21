@@ -381,12 +381,13 @@ class ThaiFontMasterStudio(tk.Tk):
                           relief=tk.FLAT, cursor="hand2", command=lambda cn=c_name: self.select_pua_cluster(cn))
             b.pack(side=tk.LEFT, padx=3, pady=6)
             
-        tk.Label(top_bar, text=" หรือพิมพ์ผสมเอง:", bg="#1f2636", fg="#94a3b8", font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(10, 2))
-        self.entry_custom_cluster = tk.Entry(top_bar, width=6, font=('Segoe UI', 11, 'bold'), bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
-        self.entry_custom_cluster.insert(0, "ริ่")
-        self.entry_custom_cluster.pack(side=tk.LEFT, padx=2)
-        tk.Button(top_bar, text="โหลด", bg="#3b82f6", fg="#ffffff", font=('Segoe UI', 9, 'bold'), relief=tk.FLAT,
-                  command=lambda: self.select_pua_cluster(self.entry_custom_cluster.get().strip())).pack(side=tk.LEFT, padx=4)
+        tk.Label(top_bar, text=" หรือพิมพ์ข้อความ/ผสมเอง:", bg="#1f2636", fg="#94a3b8", font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(10, 2))
+        self.entry_custom_cluster = tk.Entry(top_bar, width=32, font=('Segoe UI', 11, 'bold'), bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
+        self.entry_custom_cluster.insert(0, "เริ่มเล่นสร้างเซฟลบเซฟ")
+        self.entry_custom_cluster.pack(side=tk.LEFT, padx=4)
+        self.entry_custom_cluster.bind("<Return>", lambda e: self.on_load_custom_input())
+        tk.Button(top_bar, text="โหลด (Load)", bg="#3b82f6", fg="#ffffff", font=('Segoe UI', 9, 'bold'), relief=tk.FLAT, cursor="hand2",
+                  command=self.on_load_custom_input).pack(side=tk.LEFT, padx=4)
                   
         work = tk.Frame(self.tab_pua, bg="#161a24")
         work.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -483,14 +484,57 @@ class ThaiFontMasterStudio(tk.Tk):
         self.canvas_pua_sentence = tk.Canvas(sentence_frame, bg="#121622", highlightthickness=0, height=95)
         self.canvas_pua_sentence.pack(fill=tk.X, padx=10, pady=10)
         
-        self.select_pua_cluster("เริ่")
+        self.select_pua_cluster("ริ่")
         
-    def select_pua_cluster(self, c_text):
+    def on_load_custom_input(self):
+        txt = self.entry_custom_cluster.get().strip()
+        if not txt:
+            return
+        LEAD_VOWELS = set('เแโใไ')
+        TRAIL_VOWELS = set('ะาำฤฦๅ')
+        
+        # If user typed a phrase (more than 4 chars or has multiple words)
+        if len(txt) > 4 or any(c in txt for c in [' ', '   ']):
+            # Find clusters in this phrase to select
+            found_clusters = []
+            i = 0
+            n = len(txt)
+            while i < n:
+                ch = txt[i]
+                if ch in LEAD_VOWELS or ch in TRAIL_VOWELS or ch == ' ':
+                    i += 1
+                else:
+                    combo = ch
+                    j = i + 1
+                    while j < n and (txt[j] in UPPER_MARKS or txt[j] in LOWER_MARKS or txt[j] in TONE_MARKS):
+                        combo += txt[j]
+                        j += 1
+                    if len(combo) > 1 and combo not in found_clusters:
+                        found_clusters.append(combo)
+                    i = j
+            if found_clusters:
+                self.select_pua_cluster(found_clusters[0], sync_entry=False)
+            else:
+                self.select_pua_cluster("ริ่", sync_entry=False)
+        else:
+            # Single cluster: if it starts with leading vowel, strip it because เ is standalone!
+            c_tune = txt
+            if len(c_tune) > 1 and c_tune[0] in LEAD_VOWELS:
+                c_tune = c_tune[1:]
+            self.select_pua_cluster(c_tune, sync_entry=False)
+
+    def select_pua_cluster(self, c_text, sync_entry=True):
         if not c_text:
             return
+        LEAD_VOWELS = set('เแโใไ')
+        # Leading vowels (เ, แ, โ, ใ, ไ) are standalone, never PUA clusters!
+        if len(c_text) > 1 and c_text[0] in LEAD_VOWELS:
+            c_text = c_text[1:]
+            
         self.current_cluster = c_text
-        self.entry_custom_cluster.delete(0, tk.END)
-        self.entry_custom_cluster.insert(0, c_text)
+        if sync_entry:
+            self.entry_custom_cluster.delete(0, tk.END)
+            self.entry_custom_cluster.insert(0, c_text)
         self.lbl_pua_cluster_title.config(text=f"คลัสเตอร์: [ {c_text} ]")
         
         if c_text not in self.config_data['clusters']:
@@ -971,7 +1015,7 @@ class ThaiFontMasterStudio(tk.Tk):
         
         tk.Label(r1, text="พิมพ์คำทดสอบ:", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=5)
         self.entry_test = tk.Entry(r1, font=('Segoe UI', 13), width=40, bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
-        self.entry_test.insert(0, "เริ่มเล่น   สร้างเซฟ   ลบเซฟ")
+        self.entry_test.insert(0, "เริ่มเล่นสร้างเซฟลบเซฟ")
         self.entry_test.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         self.entry_test.bind("<KeyRelease>", lambda e: self.update_word_test())
         
