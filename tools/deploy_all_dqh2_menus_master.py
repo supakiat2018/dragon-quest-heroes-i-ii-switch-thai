@@ -258,9 +258,32 @@ def render_smart_banner(text, num_tiles, font_size=26):
     return im
 
 def render_banner(text, tiles, font_size, custom_type):
-    if custom_type == "rerim":
-        return render_banner_rerim(tiles * 36)
-    return render_smart_banner(text, tiles, font_size)
+    total_w = tiles * 36
+    total_h = 36
+    im = Image.new('RGBA', (total_w, total_h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    f = ImageFont.truetype(FONT_TTF, font_size)
+
+    bbox = d.textbbox((0, 0), text, font=f)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+
+    while tw > total_w - 4 and font_size > 18:
+        font_size -= 2
+        f = ImageFont.truetype(FONT_TTF, font_size)
+        bbox = d.textbbox((0, 0), text, font=f)
+        tw = bbox[2] - bbox[0]
+        th = bbox[3] - bbox[1]
+
+    tx = (total_w - tw) // 2 - bbox[0]
+    ty = (total_h - th) // 2 - bbox[1] - 1
+    if ty + bbox[1] < 1:
+        ty = 1 - bbox[1]
+    if ty + bbox[3] > 35:
+        ty = 35 - bbox[3]
+
+    d.text((tx, ty), text, font=f, fill=(255, 255, 255, 255))
+    return im
 
 # นิยามสเปกเมนูทั้ง 68 เมนูของ DQH2
 RAW_MENU_SPECS = [
