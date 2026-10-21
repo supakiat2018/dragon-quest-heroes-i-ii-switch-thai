@@ -302,7 +302,7 @@ class ThaiFontMasterStudio(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Dragon Quest Heroes II - สตูดิโอปรับแต่งฟอนต์ไทย PUA แบบแยกเลเยอร์อิสระ")
-        self.geometry("1140x840")
+        self.geometry("1240x860")
         self.minsize(1000, 720)
         self.configure(bg="#161a24")
         
@@ -372,22 +372,27 @@ class ThaiFontMasterStudio(tk.Tk):
     # ================= TAB 1: PUA CLUSTER COMPOSER =================
     def setup_tab_pua(self):
         top_bar = tk.Frame(self.tab_pua, bg="#1f2636", relief=tk.RAISED, bd=1)
-        top_bar.pack(fill=tk.X, padx=10, pady=(10, 5))
+        top_bar.pack(fill=tk.X, padx=10, pady=(6, 4))
         
-        tk.Label(top_bar, text="เลือกคลัสเตอร์ PUA ที่ต้องการปรับ:", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=10, pady=8)
-        
+        # Row 1: Presets
+        r1 = tk.Frame(top_bar, bg="#1f2636")
+        r1.pack(fill=tk.X, padx=8, pady=(4, 2))
+        tk.Label(r1, text="เลือกคลัสเตอร์ PUA ที่ต้องการปรับ:", bg="#1f2636", fg="#f0c050", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 6))
         for c_name in ["ริ่", "ร้", "ล่", "ชื่", "ตั้", "กิ่", "กิ้"]:
-            b = tk.Button(top_bar, text=f" [ {c_name} ] ", font=('Segoe UI', 11, 'bold'), bg="#2b354c", fg="#ffffff",
+            b = tk.Button(r1, text=f" [ {c_name} ] ", font=('Segoe UI', 10, 'bold'), bg="#2b354c", fg="#ffffff",
                           relief=tk.FLAT, cursor="hand2", command=lambda cn=c_name: self.select_pua_cluster(cn))
-            b.pack(side=tk.LEFT, padx=3, pady=6)
+            b.pack(side=tk.LEFT, padx=3)
             
-        tk.Label(top_bar, text=" หรือพิมพ์ข้อความ/ผสมเอง:", bg="#1f2636", fg="#94a3b8", font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(10, 2))
-        self.entry_custom_cluster = tk.Entry(top_bar, width=32, font=('Segoe UI', 11, 'bold'), bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
+        # Row 2: Custom Text Entry (Long & Spacious with guaranteed visible Load button)
+        r2 = tk.Frame(top_bar, bg="#1f2636")
+        r2.pack(fill=tk.X, padx=8, pady=(2, 6))
+        tk.Label(r2, text="หรือพิมพ์ข้อความ / ผสมคำเอง:", bg="#1f2636", fg="#38bdf8", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 6))
+        self.entry_custom_cluster = tk.Entry(r2, font=('Segoe UI', 11, 'bold'), bg="#10141d", fg="#ffffff", insertbackground="#ffffff")
         self.entry_custom_cluster.insert(0, "เริ่มเล่นสร้างเซฟลบเซฟ")
-        self.entry_custom_cluster.pack(side=tk.LEFT, padx=4)
+        self.entry_custom_cluster.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 8))
         self.entry_custom_cluster.bind("<Return>", lambda e: self.on_load_custom_input())
-        tk.Button(top_bar, text="โหลด (Load)", bg="#3b82f6", fg="#ffffff", font=('Segoe UI', 9, 'bold'), relief=tk.FLAT, cursor="hand2",
-                  command=self.on_load_custom_input).pack(side=tk.LEFT, padx=4)
+        tk.Button(r2, text="  🔍 โหลด (Load)  ", bg="#2563eb", fg="#ffffff", font=('Segoe UI', 10, 'bold'), relief=tk.FLAT, cursor="hand2",
+                  command=self.on_load_custom_input).pack(side=tk.LEFT)
                   
         work = tk.Frame(self.tab_pua, bg="#161a24")
         work.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -444,20 +449,23 @@ class ThaiFontMasterStudio(tk.Tk):
         self.lbl_pua_h = tk.Label(fh, text="18 px", bg="#1f2636", fg="#4ade80", font=('Segoe UI', 9, 'bold'), width=5)
         self.lbl_pua_h.pack(side=tk.LEFT, padx=5)
         
-        # Action Buttons
+        # Action Buttons (2 compact rows to prevent any vertical overflow)
         act_box = tk.Frame(left_f, bg="#1f2636")
-        act_box.pack(fill=tk.X, padx=10, pady=(15, 5))
+        act_box.pack(fill=tk.X, padx=8, pady=(8, 4))
         
-        tk.Button(act_box, text="⚡ จัดตัวชิดสวยงาม (Auto Tight Spacing)", bg="#8b5cf6", fg="#ffffff", font=('Segoe UI', 10, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.apply_auto_tight_spacing, pady=6).pack(fill=tk.X, pady=3)
-        tk.Button(act_box, text="💾 บันทึกค่า PUA คลัสเตอร์นี้ (Save)", bg="#10b981", fg="#ffffff", font=('Segoe UI', 10, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.save_pua_config, pady=6).pack(fill=tk.X, pady=3)
-        tk.Button(act_box, text="🔄 คืนค่าชิ้นส่วนนี้ (Reset Layer)", bg="#374151", fg="#d1d5db", font=('Segoe UI', 9),
-                  relief=tk.FLAT, cursor="hand2", command=self.reset_current_layer).pack(fill=tk.X, pady=2)
-        tk.Button(act_box, text="🚀 ติดตั้ง RomFS ฟอนต์เกม (Deploy)", bg="#2563eb", fg="#ffffff", font=('Segoe UI', 10, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.deploy_to_mod, pady=4).pack(fill=tk.X, pady=2)
-        tk.Button(act_box, text="⚡ ติดตั้ง ExeFS Patch ตัวชิด (Proportional)", bg="#7c3aed", fg="#ffffff", font=('Segoe UI', 10, 'bold'),
-                  relief=tk.FLAT, cursor="hand2", command=self.deploy_exefs_patch, pady=4).pack(fill=tk.X, pady=2)
+        row_act1 = tk.Frame(act_box, bg="#1f2636")
+        row_act1.pack(fill=tk.X, pady=2)
+        tk.Button(row_act1, text="⚡ จัดตัวชิดสวยงาม (Auto Tight)", bg="#8b5cf6", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
+                  relief=tk.FLAT, cursor="hand2", command=self.apply_auto_tight_spacing, pady=5).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
+        tk.Button(row_act1, text="💾 บันทึกค่า (Save)", bg="#10b981", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
+                  relief=tk.FLAT, cursor="hand2", command=self.save_pua_config, pady=5).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
+                  
+        row_act2 = tk.Frame(act_box, bg="#1f2636")
+        row_act2.pack(fill=tk.X, pady=2)
+        tk.Button(row_act2, text="🔄 คืนค่า (Reset)", bg="#374151", fg="#d1d5db", font=('Segoe UI', 9),
+                  relief=tk.FLAT, cursor="hand2", command=self.reset_current_layer, pady=4).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
+        tk.Button(row_act2, text="🚀 ติดตั้ง RomFS (Deploy)", bg="#2563eb", fg="#ffffff", font=('Segoe UI', 9, 'bold'),
+                  relief=tk.FLAT, cursor="hand2", command=self.deploy_to_mod, pady=4).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(3, 0))
                   
         # Right Previews
         right_f = tk.Frame(work, bg="#161a24")
@@ -731,7 +739,7 @@ class ThaiFontMasterStudio(tk.Tk):
             ("ลบเซฟ", [cr_l, cr_b, cr_e, cr_so, cr_f])
         ]
         
-        can_w = 800
+        can_w = 950
         can_h = 80
         img = Image.new('RGBA', (can_w, can_h), (18, 22, 34, 255))
         draw = ImageDraw.Draw(img)
