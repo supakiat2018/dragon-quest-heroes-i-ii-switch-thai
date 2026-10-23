@@ -5,9 +5,9 @@ build_dqh2_master_ttf.py
 1. ขนาดความกว้างและสัดส่วนเทียบเท่าตัวอักษรญี่ปุ่น (Chubby & Fullwidth ~800-1000 units ใน 1000 UPM)
 2. สระล่าง (ุ, ู เช่น อู, กู) จัดกึ่งกลางตรงกับแกนพยัญชนะด้านบนพอดีเป๊ะ
 3. พยัญชนะในคำซ้อน (เช่น ส ใน สึ้) มีขนาดเท่ากับพยัญชนะเดี่ยว (ก, ส) ไม่มีการหดหรือบีบให้เตี้ย
-4. สระนำหน้า (เ, แ, โ, ใ, ไ) แยกเป็นตัวเดี่ยวๆ เสมอ (ไม่มีรวมเป็นคำซ้อน) และชิดขวาสุด (RSB = 0) แนบชิดกับพยัญชนะตัวถัดไป ไร้ช่องว่าง
+4. สระนำหน้า (เ, แ, โ, ใ, ไ) แยกเป็นตัวเดี่ยวๆ เสมอ และชิดขวาสุด (RSB = 0) แนบชิดกับพยัญชนะตัวถัดไป ไร้ช่องว่าง
 5. สระตาม (ะ, า, ำ) สัดส่วนมาตรฐาน
-6. แมปปิ้ง PUA / Kanji จาก Mapping_Kanji.json ที่แยกสระนำหน้าเดี่ยวแล้ว (ไร้ดอกจัน 100%)
+6. แมปปิ้ง PUA / Kanji จาก Mapping_Kanji.json ครบถ้วน (รวมอักขระคีย์บอร์ด 166 ตัวและพยางค์ไทย ไร้ดอกจัน 100%)
 7. ครอบคลุมปุ่มคีย์บอร์ดภาษาอังกฤษและสัญลักษณ์แท้จากเกมทั้ง 166 ตัว (ASCII 0x20-0x7E)
 8. บันทึกตรงไปที่ D:\\Game\\dragon quest heroes i & ii\\DQH2_Original_Font\\DQH2_Thai_Master.ttf
 """
@@ -151,7 +151,7 @@ def build_composite_cluster(src_tt, src_set, src_order, hb_font, text):
 
 def main():
     print("=" * 80)
-    print(" [*] DQH2 Thai Master TTF Font Generator (V2: Separate Leading Vowels)")
+    print(" [*] DQH2 Thai Master TTF Font Generator (V3: Full 166 Keyboard In Map)")
     print(f" [*] Base Font: {PRIDI_PATH}")
     print(f" [*] Mapping File: {MAPPING_PATH}")
     print(f" [*] Output TTF: {OUT_TTF}")
@@ -165,11 +165,11 @@ def main():
     src_order = src_tt.getGlyphOrder()
     hb_font = load_harfbuzz(PRIDI_PATH)
 
-    # 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json (2,301 รายการ ที่แยกสระนำหน้าเดี่ยวแล้ว)
+    # 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json (2,391 รายการ ที่รวม 166 ตัวคีย์บอร์ดแล้ว)
     print("[+] 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json...")
     with open(MAPPING_PATH, "r", encoding="utf-8") as f:
         kanji_map = json.load(f)
-    print(f"    - พบรายการคลัสเตอร์ทั้งสิ้น: {len(kanji_map):,} รายการ")
+    print(f"    - พบรายการคลัสเตอร์ทั้งสิ้น: {len(kanji_map):,} รายการ (รวม 166 ปุ่มคีย์บอร์ดอังกฤษ)")
 
     # ตรวจสอบว่าไม่มีคลัสเตอร์ที่มีสระนำหน้าผสมค้างอยู่
     compound_lvs = [k for k in kanji_map if any(lv in k for lv in 'เแโใไ') and len(k) > 1]
@@ -237,13 +237,21 @@ def main():
         thai_std_count += 1
     print(f"    - สร้างอักขระภาษาไทยมาตรฐานสำเร็จ: {thai_std_count} ตัว")
 
-    # 6. สร้างคลัสเตอร์รวมสระ/วรรณยุกต์ตามผัง Mapping_Kanji.json (2,301 รายการ)
-    print("[+] 5. ประกอบคลัสเตอร์คำซ้อนและสระล่างกึ่งกลาง (2,301 รายการสู่รหัสคันจิ)...")
+    # 6. สร้างคลัสเตอร์รวมสระ/วรรณยุกต์และแมปปิ้งทั้งหมดตามผัง Mapping_Kanji.json (2,391 รายการ)
+    print("[+] 5. ประกอบคลัสเตอร์คำซ้อนและแมปปิ้ง Mapping_Kanji.json ทั้งหมด...")
     mapped_count = 0
     for cluster_text, kanji_char in kanji_map.items():
         cp = ord(kanji_char)
-        gname = f"kanji_pua_{cp:04X}"
 
+        # หากเป็นอักขระ ASCII เดี่ยว 1:1 ที่สร้างไว้แล้วใน step 3
+        if len(cluster_text) == 1 and ord(cluster_text) < 128 and cluster_text == kanji_char:
+            ascii_gname = f"ascii_{cp:04X}"
+            if ascii_gname in glyphs:
+                cmap[cp] = ascii_gname
+                mapped_count += 1
+                continue
+
+        gname = f"kanji_pua_{cp:04X}"
         glyph, adv, lsb = build_composite_cluster(src_tt, src_set, src_order, hb_font, cluster_text)
         glyphs[gname] = glyph
         metrics[gname] = (adv, lsb)
