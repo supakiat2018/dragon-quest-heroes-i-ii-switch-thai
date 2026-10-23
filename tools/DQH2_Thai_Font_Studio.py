@@ -2,12 +2,13 @@
 DQH2_Thai_Font_Studio.py
 โปรแกรมสตูดิโอปรับแต่งฟอนต์ภาษาไทยสำหรับ Dragon Quest Heroes II (Nintendo Switch)
 เวอร์ชันอัปเกรด:
-1. เพิ่มสไลเดอร์ "ยืดความสูงอิสระ (Height Scale Y %)" 70% - 180% ดึงตัวอักษรให้สูงเท่าตัว A หรือคันจิเดิมได้ 100%
-2. เพิ่มสไลเดอร์ "ยืดความกว้างอิสระ (Width Scale X %)" 70% - 160%
-3. ปรับเลื่อนแกน Y (ขึ้น-ลง) และแกน X (ซ้าย-ขวา) ให้ลงล็อก Baseline และตรงกลางเป๊ะ
-4. ปรับความหนาด้านละเท่าๆ กัน (Symmetric Dilation)
-5. ซ้อนเงาฟอนต์เดิมจางๆ (Ghost Overlay) ซูมใหญ่ 10x
-6. ปุ่ม [💾 บันทึกการตั้งค่า (Save Config)] เพื่อเซฟส่งต่อให้ AI นำไปสร้างฟอนต์จริง
+1. ตั้งค่าเริ่มต้นให้เงาเป็น "ตัวอักษรจีน / คันจิแท้จากเกม (Square Kanji)" เพื่อให้เห็นกรอบมาตรฐาน สัดส่วน ความกว้าง และความสูงที่แท้จริง
+2. มีตัวเลือกคันจิหลายรูปแบบให้ทาบขนาด
+3. สไลเดอร์ยืดความสูงอิสระ (Height Scale Y) 70% - 180%
+4. สไลเดอร์ยืดความกว้างอิสระ (Width Scale X) 70% - 160%
+5. เลื่อนแกน Y (ขึ้น-ลง) และแกน X (ซ้าย-ขวา)
+6. ปรับความหนาด้านละเท่าๆ กัน (Symmetric Dilation)
+7. ปุ่ม [💾 บันทึกการตั้งค่า (Save Config)]
 """
 
 import os
@@ -34,25 +35,28 @@ UPPER_MARKS = set('ิีึืั็ํ')
 LOWER_MARKS = set('ฺุู')
 TONE_MARKS  = set('่้๊๋์')
 
-# Reference characters from Entry 55
+# Reference characters from Entry 55 (Kanji first!)
 REF_COORDS = {
-    'A (Original English)': (1, 44),
-    'B (Original English)': (1, 45),
-    'W (Original Wide)': (1, 66),
-    '0 (Original Number)': (1, 34),
-    '1 (Original Number)': (1, 35),
-    'あ (Original Hiragana)': (6, 75),
-    'ア (Original Katakana)': (7, 45),
-    'ド (Original Katakana)': (7, 85),
-    'ปิดเงา (No Ghost)': None
+    '🇨🇳 ตัวอักษรจีน/คันจิ กรอบมาตรฐาน 1 (Square Kanji)': (11, 50),
+    '🇨🇳 ตัวอักษรจีน/คันจิ กรอบมาตรฐาน 2 (Full Kanji)': (14, 10),
+    '🇨🇳 ตัวอักษรจีน/คันจิ กรอบมาตรฐาน 3 (Solid Kanji)': (18, 30),
+    '🇨🇳 ตัวอักษรจีน/คันจิ กรอบมาตรฐาน 4 (Box Kanji)': (20, 40),
+    '🔤 A (Original English)': (1, 44),
+    '🔤 W (Original Wide English)': (1, 66),
+    '🔢 0 (Original Number)': (1, 34),
+    '🇯🇵 あ (Original Hiragana)': (6, 75),
+    '🇯🇵 ド (Original Katakana)': (7, 85),
+    '❌ ปิดเงา (No Ghost)': None
 }
+
+DEFAULT_REF = '🇨🇳 ตัวอักษรจีน/คันจิ กรอบมาตรฐาน 1 (Square Kanji)'
 
 class DQH2FontStudio(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Dragon Quest Heroes II - Thai Font Studio (V2 Proportional & Height Scaler)")
-        self.geometry("1340x880")
+        self.title("Dragon Quest Heroes II - Thai Font Studio (V3 Kanji Ghost & Full Sizer)")
+        self.geometry("1360x900")
         ctk.set_appearance_mode("Dark")
         ctk.set_default_color_theme("blue")
 
@@ -63,15 +67,15 @@ class DQH2FontStudio(ctk.CTk):
         
         # Sliders state
         self.font_size = 28
-        self.scale_y = 1.25 # Height Scale (125% default so it matches tall original 'A'!)
-        self.scale_x = 1.00 # Width Scale (100%)
+        self.scale_y = 1.30 # Height Scale (130% matches standard Kanji height!)
+        self.scale_x = 1.05 # Width Scale (105%)
         self.offset_y = 0   # Nudge Y (-10 to +10)
         self.offset_x = 0   # Nudge X (-10 to +10)
         self.base_y = 28
         self.base_thickness = 1 # Dilation pixels
         self.mark_thickness = 0
-        self.ghost_opacity = 0.50
-        self.ref_key = 'A (Original English)'
+        self.ghost_opacity = 0.55
+        self.ref_key = DEFAULT_REF
         self.show_grid = True
         self.show_baseline = True
 
@@ -103,19 +107,21 @@ class DQH2FontStudio(ctk.CTk):
                 self.base_thickness = cfg.get("base_thickness", self.base_thickness)
                 self.mark_thickness = cfg.get("mark_thickness", self.mark_thickness)
                 self.ghost_opacity = cfg.get("ghost_opacity", self.ghost_opacity)
+                saved_ref = cfg.get("ref_character", DEFAULT_REF)
+                if saved_ref in REF_COORDS:
+                    self.ref_key = saved_ref
             except:
                 pass
 
     def build_ui(self):
-        # Grid layout (Left 460px width for spacious controls, Right expands)
-        self.grid_columnconfigure(0, weight=0, minsize=460)
+        self.grid_columnconfigure(0, weight=0, minsize=470)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # ==============================================================
-        # LEFT PANEL: Controls & Settings (Wider so text doesn't cut!)
+        # LEFT PANEL: Controls & Settings
         # ==============================================================
-        left_frame = ctk.CTkScrollableFrame(self, label_text="🎛️ เครื่องมือปรับแต่งฟอนต์ (Font Tuning Controls)", width=450)
+        left_frame = ctk.CTkScrollableFrame(self, label_text="🎛️ เครื่องมือปรับแต่งฟอนต์ (Font Tuning Controls)", width=460)
         left_frame.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
 
         # 1. Section: Font Selector
@@ -129,7 +135,7 @@ class DQH2FontStudio(ctk.CTk):
         btn_browse = ctk.CTkButton(sec1, text="📂 เลือกไฟล์ฟอนต์จากเครื่อง...", command=self.browse_font, fg_color="#2B6CB0", hover_color="#2C5282")
         btn_browse.pack(fill="x", padx=10, pady=(5, 10))
 
-        # 2. Section: Height & Width Stretch Scaling (แก้เรื่องปรับความสูงไม่ได้!)
+        # 2. Section: Height & Width Stretch Scaling
         sec_scale = ctk.CTkFrame(left_frame)
         sec_scale.pack(fill="x", pady=8, padx=5)
 
@@ -155,14 +161,12 @@ class DQH2FontStudio(ctk.CTk):
         pos_frame.columnconfigure(0, weight=1)
         pos_frame.columnconfigure(1, weight=1)
 
-        # Offset Y
         self.lbl_offset_y = ctk.CTkLabel(pos_frame, text=f"เลื่อนขึ้น-ลง (Nudge Y): {self.offset_y} px")
         self.lbl_offset_y.grid(row=0, column=0, padx=5, sticky="w")
         self.slider_offset_y = ctk.CTkSlider(pos_frame, from_=-10, to=10, number_of_steps=20, command=self.on_offset_y_change)
         self.slider_offset_y.set(self.offset_y)
         self.slider_offset_y.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
 
-        # Offset X
         self.lbl_offset_x = ctk.CTkLabel(pos_frame, text=f"เลื่อนซ้าย-ขวา (Nudge X): {self.offset_x} px")
         self.lbl_offset_x.grid(row=0, column=1, padx=5, sticky="w")
         self.slider_offset_x = ctk.CTkSlider(pos_frame, from_=-10, to=10, number_of_steps=20, command=self.on_offset_x_change)
@@ -188,28 +192,26 @@ class DQH2FontStudio(ctk.CTk):
 
         ctk.CTkLabel(sec2, text="3. ปรับความหนาเท่ากันทุกด้าน (Symmetric Dilation)", font=("Arial", 14, "bold"), text_color="#FFD700").pack(anchor="w", padx=10, pady=(10, 5))
 
-        # Base Consonant Thickness
         self.lbl_base_thick = ctk.CTkLabel(sec2, text=f"ความหนาพยัญชนะฐาน (Consonant): +{self.base_thickness} px")
         self.lbl_base_thick.pack(anchor="w", padx=10, pady=(5, 0))
         self.slider_base_thick = ctk.CTkSlider(sec2, from_=0, to=5, number_of_steps=5, command=self.on_base_thick_change)
         self.slider_base_thick.set(self.base_thickness)
         self.slider_base_thick.pack(fill="x", padx=10, pady=5)
 
-        # Mark Thickness (Vowels & Tones)
         self.lbl_mark_thick = ctk.CTkLabel(sec2, text=f"ความหนาสระและวรรณยุกต์ (Vowels/Tones): +{self.mark_thickness} px")
         self.lbl_mark_thick.pack(anchor="w", padx=10, pady=(5, 0))
         self.slider_mark_thick = ctk.CTkSlider(sec2, from_=0, to=4, number_of_steps=4, command=self.on_mark_thick_change)
         self.slider_mark_thick.set(self.mark_thickness)
         self.slider_mark_thick.pack(fill="x", padx=10, pady=(5, 10))
 
-        # 4. Section: Ghost Overlay
+        # 4. Section: Ghost Overlay (Kanji Focus!)
         sec3 = ctk.CTkFrame(left_frame)
         sec3.pack(fill="x", pady=8, padx=5)
 
         ctk.CTkLabel(sec3, text="4. เงาฟอนต์เดิมจากในเกม (Ghost Overlay)", font=("Arial", 14, "bold"), text_color="#FFD700").pack(anchor="w", padx=10, pady=(10, 5))
 
-        ctk.CTkLabel(sec3, text="เลือกตัวอักษรเงาต้นฉบับ Entry 55 สำหรับทาบขนาด:").pack(anchor="w", padx=10, pady=(5, 0))
-        self.combo_ref = ctk.CTkComboBox(sec3, values=list(REF_COORDS.keys()), command=self.on_ref_change)
+        ctk.CTkLabel(sec3, text="เลือกตัวอักษรเงาต้นฉบับ Entry 55 (เน้นตัวจีน/คันจิ):", text_color="#68D391").pack(anchor="w", padx=10, pady=(5, 0))
+        self.combo_ref = ctk.CTkComboBox(sec3, values=list(REF_COORDS.keys()), width=420, command=self.on_ref_change)
         self.combo_ref.set(self.ref_key)
         self.combo_ref.pack(fill="x", padx=10, pady=5)
 
@@ -228,7 +230,7 @@ class DQH2FontStudio(ctk.CTk):
         self.chk_base.select()
         self.chk_base.pack(side="left", padx=15)
 
-        # 5. Section: Save Button (ปุ่มเซฟค่าเพื่อให้มึงสร้าง)
+        # 5. Section: Save Button
         sec4 = ctk.CTkFrame(left_frame, fg_color="#1A202C")
         sec4.pack(fill="x", pady=15, padx=5)
 
@@ -250,10 +252,9 @@ class DQH2FontStudio(ctk.CTk):
         right_frame.grid(row=0, column=1, padx=15, pady=15, sticky="nsew")
         right_frame.grid_columnconfigure(0, weight=1)
 
-        # Big Canvas Zoom (10x zoom = 360x360 px)
         top_bar = ctk.CTkFrame(right_frame, fg_color="transparent")
         top_bar.pack(fill="x", padx=15, pady=(15, 5))
-        ctk.CTkLabel(top_bar, text="🔍 จอพรีวิวซูม 10 เท่า (10X Cell Preview 36x36 px)", font=("Arial", 16, "bold"), text_color="#63B3ED").pack(side="left")
+        ctk.CTkLabel(top_bar, text="🔍 จอพรีวิวซูม 10 เท่า (10X Cell Preview 36x36 px) ทาบเงาตัวจีน", font=("Arial", 16, "bold"), text_color="#63B3ED").pack(side="left")
 
         self.canvas_label = tk.Label(right_frame, bg="#111317", bd=2, relief="groove")
         self.canvas_label.pack(pady=10)
@@ -423,7 +424,7 @@ class DQH2FontStudio(ctk.CTk):
         zoom_h = 36 * Z
         view_im = Image.new("RGBA", (zoom_w, zoom_h), (18, 20, 26, 255))
 
-        # A. เงาฟอนต์เดิม (Ghost Overlay)
+        # A. เงาฟอนต์เดิม (Ghost Overlay - เน้นตัวจีนคันจิ)
         if self.atlas and self.ref_key in REF_COORDS and REF_COORDS[self.ref_key] is not None and self.ghost_opacity > 0:
             r, c = REF_COORDS[self.ref_key]
             orig_crop = self.atlas.crop((c * 36, r * 36, c * 36 + 36, r * 36 + 36))
