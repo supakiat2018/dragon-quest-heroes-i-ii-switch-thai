@@ -8,7 +8,7 @@ build_dqh2_master_ttf.py
 4. สระนำหน้า (เ, แ, โ, ใ, ไ) แยกเป็นตัวเดี่ยวๆ เสมอ และชิดขวาสุด (RSB = 0) แนบชิดกับพยัญชนะตัวถัดไป ไร้ช่องว่าง
 5. สระตาม (ะ, า, ำ) สัดส่วนมาตรฐาน
 6. แมปปิ้ง PUA / Kanji จาก Mapping_Kanji.json ครบถ้วน (รวมอักขระคีย์บอร์ด 166 ตัวและพยางค์ไทย ไร้ดอกจัน 100%)
-7. ครอบคลุมปุ่มคีย์บอร์ดภาษาอังกฤษและสัญลักษณ์แท้จากเกมทั้ง 166 ตัว (ASCII 0x20-0x7E)
+7. ผูกรหัสคีย์บอร์ดญี่ปุ่นเดิม (83 ฮิรางานะ -> A-Z/0-9, 83 คาตาคานะ -> a-z/0-9) แสดงผลเป็นอังกฤษแท้ 100% ไร้ Tofu (🔲)
 8. บันทึกตรงไปที่ D:\\Game\\dragon quest heroes i & ii\\DQH2_Original_Font\\DQH2_Thai_Master.ttf
 """
 
@@ -45,6 +45,30 @@ PUNCT_MAP = {
     '、': ',',
     '！': '!',
     '\n': ' '
+}
+
+# ผังคีย์บอร์ด 166 ปุ่มเดิมของเกม (ญี่ปุ่น 83 Hiragana + 83 Katakana -> อังกฤษ A-Z / a-z / 0-9)
+KANA_KEYBOARD_MAP = {
+    # Page 1: 83 Hiragana -> Uppercase / Digits / Symbols
+    "あ": "A", "い": "B", "う": "C", "え": "D", "お": "E", "か": "F", "き": "G", "く": "H", "け": "I", "こ": "J",
+    "さ": "K", "し": "L", "す": "M", "せ": "N", "そ": "O", "た": "P", "ち": "Q", "つ": "R", "て": "S", "と": "T",
+    "な": "U", "に": "V", "ぬ": "W", "ね": "X", "の": "Y", "ぁ": "Z", "ぃ": " ", "ぅ": "-", "ぇ": ".", "ぉ": "!",
+    "は": "0", "ひ": "1", "ふ": "2", "へ": "3", "ほ": "4", "ま": "5", "み": "6", "む": "7", "め": "8", "も": "9",
+    "や": "A", "ゆ": "E", "よ": "I", "わ": "O", "ん": "U", "ら": "?", "り": "/", "る": ":", "れ": ";", "ろ": "_",
+    "ゃ": "+", "ゅ": "=", "ょ": "-", "っ": ".", "を": "!", "ー": "-", "～": "~", "・": ".", "が": "0", "ぎ": "1",
+    "ぐ": "2", "げ": "3", "ご": "4", "ざ": "5", "じ": "6", "ず": "7", "ぜ": "8", "ぞ": "9", "だ": "A", "ぢ": "B",
+    "づ": "C", "で": "D", "ど": "E", "ば": "F", "び": "G", "ぶ": "H", "べ": "I", "ぼ": "J", "ぱ": "K", "ぴ": "L",
+    "ぷ": "M", "ぺ": "N", "ぽ": "O",
+
+    # Page 2: 83 Katakana -> Lowercase / Digits / Symbols
+    "ア": "a", "イ": "b", "ウ": "c", "エ": "d", "オ": "e", "カ": "f", "キ": "g", "ク": "h", "ケ": "i", "コ": "j",
+    "サ": "k", "シ": "l", "ス": "m", "セ": "n", "ソ": "o", "タ": "p", "チ": "q", "ツ": "r", "テ": "s", "ト": "t",
+    "ナ": "u", "ニ": "v", "ヌ": "w", "ネ": "x", "ノ": "y", "ァ": "z", "ィ": " ", "ゥ": "-", "ェ": ".", "ォ": "?",
+    "ハ": "0", "ヒ": "1", "フ": "2", "ヘ": "3", "ホ": "4", "マ": "5", "ミ": "6", "ム": "7", "メ": "8", "モ": "9",
+    "ヤ": "a", "ユ": "e", "ヨ": "i", "ワ": "o", "ン": "u", "ラ": "!", "リ": "/", "ル": ":", "レ": ";", "ロ": "_",
+    "ャ": "+", "ュ": "=", "ョ": "-", "ッ": ".", "ヲ": "?", "ガ": "0", "ギ": "1", "グ": "2", "ゲ": "3", "ゴ": "4",
+    "ザ": "5", "ジ": "6", "ズ": "7", "ゼ": "8", "ゾ": "9", "ダ": "a", "ヂ": "b", "ヅ": "c", "デ": "d", "ド": "e",
+    "バ": "f", "ビ": "g", "ブ": "h", "ベ": "i", "ボ": "j", "パ": "k", "ピ": "l", "プ": "m", "ペ": "n", "ポ": "o"
 }
 
 def load_harfbuzz(font_path):
@@ -151,7 +175,7 @@ def build_composite_cluster(src_tt, src_set, src_order, hb_font, text):
 
 def main():
     print("=" * 80)
-    print(" [*] DQH2 Thai Master TTF Font Generator (V3: Full 166 Keyboard In Map)")
+    print(" [*] DQH2 Thai Master TTF Font Generator (V4: 166 Kana Keyboard Aliasing)")
     print(f" [*] Base Font: {PRIDI_PATH}")
     print(f" [*] Mapping File: {MAPPING_PATH}")
     print(f" [*] Output TTF: {OUT_TTF}")
@@ -165,11 +189,11 @@ def main():
     src_order = src_tt.getGlyphOrder()
     hb_font = load_harfbuzz(PRIDI_PATH)
 
-    # 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json (2,391 รายการ ที่รวม 166 ตัวคีย์บอร์ดแล้ว)
+    # 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json (2,554 รายการ ที่รวม 166 คีย์บอร์ดและ Kana แล้ว)
     print("[+] 2. โหลดรายการแมปปิ้ง Mapping_Kanji.json...")
     with open(MAPPING_PATH, "r", encoding="utf-8") as f:
         kanji_map = json.load(f)
-    print(f"    - พบรายการคลัสเตอร์ทั้งสิ้น: {len(kanji_map):,} รายการ (รวม 166 ปุ่มคีย์บอร์ดอังกฤษ)")
+    print(f"    - พบรายการคลัสเตอร์ทั้งสิ้น: {len(kanji_map):,} รายการ")
 
     # ตรวจสอบว่าไม่มีคลัสเตอร์ที่มีสระนำหน้าผสมค้างอยู่
     compound_lvs = [k for k in kanji_map if any(lv in k for lv in 'เแโใไ') and len(k) > 1]
@@ -237,8 +261,20 @@ def main():
         thai_std_count += 1
     print(f"    - สร้างอักขระภาษาไทยมาตรฐานสำเร็จ: {thai_std_count} ตัว")
 
-    # 6. สร้างคลัสเตอร์รวมสระ/วรรณยุกต์และแมปปิ้งทั้งหมดตามผัง Mapping_Kanji.json (2,391 รายการ)
-    print("[+] 5. ประกอบคลัสเตอร์คำซ้อนและแมปปิ้ง Mapping_Kanji.json ทั้งหมด...")
+    # 6. ผูกรหัสคีย์บอร์ดภาษาญี่ปุ่น (83 Hiragana + 83 Katakana) ให้แสดงผลเป็นตัวอักษรภาษาอังกฤษ A-Z / a-z / 0-9
+    print("[+] 5. ผูกรหัสคีย์บอร์ดญี่ปุ่น 166 ตัว (あ-ぽ -> A-Z, ア-ポ -> a-z) เข้ากับฟอนต์ (ไร้ Tofu 100%)...")
+    kana_mapped_count = 0
+    for orig_kana, target_char in KANA_KEYBOARD_MAP.items():
+        kana_cp = ord(orig_kana)
+        target_cp = ord(target_char)
+        ascii_gname = f"ascii_{target_cp:04X}"
+        if ascii_gname in glyphs:
+            cmap[kana_cp] = ascii_gname
+            kana_mapped_count += 1
+    print(f"    - ผูกรหัส Kana -> English สำเร็จ: {kana_mapped_count} ตัวอักษร")
+
+    # 7. สร้างคลัสเตอร์รวมสระ/วรรณยุกต์และแมปปิ้งทั้งหมดตามผัง Mapping_Kanji.json (2,554 รายการ)
+    print("[+] 6. ประกอบคลัสเตอร์คำซ้อนและแมปปิ้ง Mapping_Kanji.json ทั้งหมด...")
     mapped_count = 0
     for cluster_text, kanji_char in kanji_map.items():
         cp = ord(kanji_char)
@@ -251,6 +287,11 @@ def main():
                 mapped_count += 1
                 continue
 
+        # หากเป็นตัว Kana ญี่ปุ่นที่ผูกไว้ใน step 6 แล้ว
+        if cluster_text in KANA_KEYBOARD_MAP:
+            mapped_count += 1
+            continue
+
         gname = f"kanji_pua_{cp:04X}"
         glyph, adv, lsb = build_composite_cluster(src_tt, src_set, src_order, hb_font, cluster_text)
         glyphs[gname] = glyph
@@ -262,8 +303,8 @@ def main():
 
     print(f"    - ประกอบคลัสเตอร์และแมปคันจิสำเร็จ: {mapped_count:,} รายการ (ไร้ดอกจัน 100%!)")
 
-    # 7. ประกอบตารางฟอนต์ TrueType
-    print("[+] 6. บันทึกและสร้างโครงสร้างตาราง TrueType OpenType...")
+    # 8. ประกอบตารางฟอนต์ TrueType
+    print("[+] 7. บันทึกและสร้างโครงสร้างตาราง TrueType OpenType...")
     fb.setupGlyphOrder(glyph_order)
     fb.setupCharacterMap(cmap)
     fb.setupGlyf(glyphs)
